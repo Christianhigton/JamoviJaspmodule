@@ -1,0 +1,19 @@
+---
+name: enhancedBayesianLogisticRegression
+title: JASP Enhanced Bayesian Logistic Regression
+menuGroup: JASP Enhanced Regression
+menuSubgroup: Bayesian
+menuTitle: Bayesian Logistic Regression
+version: '0.1.0'
+jas: '1.2'
+description:
+    main: jamovi-native shell for the JASP Bayesian logistic regression analysis.
+options:
+    - { name: data, type: Data }
+    - { name: dependent, title: Dependent Variable, type: Variable, suggested: [nominal, ordinal], permitted: [factor] }
+    - { name: covariates, title: Covariates, type: Variables, suggested: [continuous], permitted: [numeric] }
+    - { name: factors, title: Factors, type: Variables, suggested: [nominal, ordinal], permitted: [factor] }
+    - { name: modelComparison, title: Model comparison, type: Bool, default: true }
+    - { name: posterior, title: Posterior summaries, type: Bool, default: true }
+    - { name: apaReport, title: APA reporting, type: Bool, default: true }
+...

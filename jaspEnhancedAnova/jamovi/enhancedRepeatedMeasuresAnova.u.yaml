@@ -1,0 +1,247 @@
+---
+name: enhancedRepeatedMeasuresAnova
+title: JASP Enhanced Repeated Measures ANOVA
+jus: '2.0'
+stage: 0
+compilerMode: tame
+children:
+  - type: VariableSupplier
+    suggested: [continuous, nominal, ordinal]
+    persistentItems: false
+    children:
+      - type: TargetLayoutBox
+        label: Repeated Measures Cells
+        children: [{ type: VariablesListBox, name: repeatedMeasures, isTarget: true }]
+      - type: TargetLayoutBox
+        label: Between-Subject Factors
+        children: [{ type: VariablesListBox, name: betweenFactors, isTarget: true }]
+      - type: TargetLayoutBox
+        label: Covariates
+        children: [{ type: VariablesListBox, name: covariates, isTarget: true }]
+      - type: TargetLayoutBox
+        label: Optional Grouping Factor
+        children: [{ type: VariablesListBox, name: groupingFactor, maxItemCount: 1, isTarget: true }]
+      - type: TargetLayoutBox
+        label: 'Descriptive Plot: Horizontal Axis'
+        children: [{ type: VariablesListBox, name: descPlotXAxis, maxItemCount: 1, isTarget: true }]
+      - type: TargetLayoutBox
+        label: 'Descriptive Plot: Separate Lines'
+        children: [{ type: VariablesListBox, name: descPlotLines, maxItemCount: 1, isTarget: true }]
+      - type: TargetLayoutBox
+        label: 'Descriptive Plot: Separate Plots'
+        children: [{ type: VariablesListBox, name: descPlotSeparate, maxItemCount: 1, isTarget: true }]
+      - type: TargetLayoutBox
+        label: 'Bar Plot: Horizontal Axis'
+        children: [{ type: VariablesListBox, name: barPlotXAxis, maxItemCount: 1, isTarget: true }]
+      - type: TargetLayoutBox
+        label: 'Bar Plot: Separate Plots'
+        children: [{ type: VariablesListBox, name: barPlotSeparate, maxItemCount: 1, isTarget: true }]
+      - type: TargetLayoutBox
+        label: 'Raincloud Plot: Horizontal Axis'
+        children: [{ type: VariablesListBox, name: raincloudXAxis, maxItemCount: 1, isTarget: true }]
+      - type: TargetLayoutBox
+        label: 'Raincloud Plot: Separate Plots'
+        children: [{ type: VariablesListBox, name: raincloudSeparate, maxItemCount: 1, isTarget: true }]
+      - type: TargetLayoutBox
+        label: Marginal Means Terms
+        children: [{ type: VariablesListBox, name: marginalMeanTerms, isTarget: true }]
+      - type: TargetLayoutBox
+        label: Simple Effect Factor
+        children: [{ type: VariablesListBox, name: simpleEffectFactor, maxItemCount: 1, isTarget: true }]
+      - type: TargetLayoutBox
+        label: Moderator Factor 1
+        children: [{ type: VariablesListBox, name: moderatorFactor1, maxItemCount: 1, isTarget: true }]
+      - type: TargetLayoutBox
+        label: Moderator Factor 2
+        children: [{ type: VariablesListBox, name: moderatorFactor2, maxItemCount: 1, isTarget: true }]
+
+  - type: CollapseBox
+    label: Repeated Measures Design
+    collapsed: false
+    children:
+      - { type: TextBox, name: rmFactorNames, format: string }
+      - { type: TextBox, name: rmFactorLevels, format: string }
+      - { type: TextBox, name: rmFactorSpec, format: string }
+
+  - type: CollapseBox
+    label: Display and Effect Sizes
+    collapsed: false
+    children:
+      - { type: CheckBox, name: descriptives }
+      - { type: CheckBox, name: vovkSellke }
+      - { type: CheckBox, name: omegaSq }
+      - { type: CheckBox, name: partialOmegaSq }
+      - { type: CheckBox, name: etaSq }
+      - { type: CheckBox, name: partialEtaSq }
+      - { type: CheckBox, name: generalizedEtaSq }
+      - { type: CheckBox, name: effectSizeCi }
+      - { type: TextBox, name: ciWidth, format: number }
+
+  - type: CollapseBox
+    label: Model Builder
+    collapsed: true
+    children:
+      - { type: CheckBox, name: automaticModel }
+      - { type: TextBox, name: manualModelTerms, format: string }
+      - { type: CheckBox, name: rmMainEffects }
+      - { type: CheckBox, name: rmInteractions }
+      - { type: CheckBox, name: rmHigherOrderInteractions }
+      - { type: CheckBox, name: betweenMainEffects }
+      - { type: CheckBox, name: betweenInteractions }
+      - { type: CheckBox, name: mixedInteractions }
+      - { type: ComboBox, name: sumOfSquares }
+      - { type: CheckBox, name: poolErrorTerms }
+
+  - type: CollapseBox
+    label: Assumption Checks
+    collapsed: false
+    children:
+      - { type: CheckBox, name: mauchly }
+      - { type: ComboBox, name: sphericityCorrection }
+      - { type: CheckBox, name: levene }
+      - { type: CheckBox, name: homogeneityTests }
+      - { type: CheckBox, name: qqPlotResiduals }
+      - { type: CheckBox, name: residualDiagnostics }
+      - { type: CheckBox, name: residualPlots }
+      - { type: CheckBox, name: influenceDiagnostics }
+      - { type: CheckBox, name: cooksDistance }
+      - { type: CheckBox, name: mahalanobisDistance }
+
+  - type: CollapseBox
+    label: Repeated Measures Contrasts
+    collapsed: true
+    children:
+      - { type: ComboBox, name: rmContrastType }
+      - { type: CheckBox, name: contrastCi }
+      - { type: CheckBox, name: contrastCohensD }
+      - { type: CheckBox, name: contrastEffectSizes }
+      - { type: CheckBox, name: contrastPoolError }
+      - { type: CheckBox, name: rmCustomContrasts }
+      - { type: TextBox, name: rmContrastSyntax, format: string }
+
+  - type: CollapseBox
+    label: Bayesian and Order Restricted Hypotheses
+    collapsed: true
+    children:
+      - { type: CheckBox, name: orderRestricted }
+      - { type: TextBox, name: orderRestrictedSyntax, format: string }
+      - { type: CheckBox, name: multipleHypothesisModels }
+      - { type: TextBox, name: hypothesisModelSpec, format: string }
+      - { type: CheckBox, name: modelComparison }
+      - { type: ComboBox, name: referenceModel }
+      - { type: CheckBox, name: complementModel }
+      - { type: CheckBox, name: weightRatios }
+      - { type: CheckBox, name: relativeWeightsMatrix }
+      - { type: CheckBox, name: compareCoefficients }
+      - { type: CheckBox, name: informedHypothesisTests }
+      - { type: CheckBox, name: bootstrap }
+      - { type: TextBox, name: bootstrapSamples, format: number }
+      - { type: CheckBox, name: bootstrapCi }
+
+  - type: CollapseBox
+    label: Post Hoc Tests
+    collapsed: true
+    children:
+      - { type: CheckBox, name: postHoc }
+      - { type: CheckBox, name: postHocRmFactors }
+      - { type: CheckBox, name: postHocBetweenFactors }
+      - { type: CheckBox, name: postHocInteractions }
+      - { type: CheckBox, name: postHocHolm }
+      - { type: CheckBox, name: postHocBonferroni }
+      - { type: CheckBox, name: postHocTukey }
+      - { type: CheckBox, name: postHocScheffe }
+      - { type: CheckBox, name: postHocSidak }
+      - { type: CheckBox, name: postHocCi }
+      - { type: CheckBox, name: postHocSignificantFlags }
+      - { type: CheckBox, name: postHocLetters }
+      - { type: CheckBox, name: postHocEffectSizes }
+      - { type: CheckBox, name: conditionalComparisons }
+      - { type: CheckBox, name: postHocPoolError }
+
+  - type: CollapseBox
+    label: Descriptive and Bar Plots
+    collapsed: true
+    children:
+      - { type: CheckBox, name: descriptivePlots }
+      - { type: ComboBox, name: descPlotError }
+      - { type: TextBox, name: descPlotYAxisLabel, format: string }
+      - { type: CheckBox, name: descPlotAverageUnused }
+      - { type: CheckBox, name: barPlots }
+      - { type: ComboBox, name: barPlotError }
+      - { type: CheckBox, name: barPlotFixZero }
+      - { type: TextBox, name: barPlotYAxisLabel, format: string }
+      - { type: CheckBox, name: barPlotAverageUnused }
+
+  - type: CollapseBox
+    label: Raincloud Plots
+    collapsed: true
+    children:
+      - { type: CheckBox, name: raincloudPlots }
+      - { type: TextBox, name: raincloudYAxisLabel, format: string }
+
+  - type: CollapseBox
+    label: Marginal Means
+    collapsed: true
+    children:
+      - { type: CheckBox, name: marginalMeans }
+      - { type: CheckBox, name: marginalMeansBootstrap }
+      - { type: CheckBox, name: marginalMeansCompareZero }
+      - { type: CheckBox, name: marginalMeansCi }
+      - { type: ComboBox, name: marginalMeansCiAdjustment }
+      - { type: CheckBox, name: marginalMeansPoolError }
+
+  - type: CollapseBox
+    label: Simple Main Effects
+    collapsed: true
+    children:
+      - { type: CheckBox, name: simpleEffects }
+      - { type: CheckBox, name: simpleEffectsTests }
+      - { type: CheckBox, name: simpleEffectsPairwise }
+      - { type: CheckBox, name: simpleEffectsEffectSizes }
+      - { type: CheckBox, name: simpleEffectsCi }
+      - { type: CheckBox, name: simpleEffectsPoolError }
+
+  - type: CollapseBox
+    label: Nonparametric Repeated Measures
+    collapsed: true
+    children:
+      - { type: CheckBox, name: friedman }
+      - { type: CheckBox, name: conoverPostHoc }
+
+  - type: CollapseBox
+    label: Save to Dataset
+    collapsed: true
+    children:
+      - { type: CheckBox, name: saveResiduals }
+      - { type: CheckBox, name: saveRawResiduals }
+      - { type: CheckBox, name: saveStudentizedResiduals }
+      - { type: CheckBox, name: saveStandardizedResiduals }
+      - { type: TextBox, name: residualColumnName, format: string }
+      - { type: Output, name: rmResidsOV }
+      - { type: Output, name: rmStudentizedResidsOV }
+      - { type: Output, name: rmStandardizedResidsOV }
+      - { type: CheckBox, name: savePredictions }
+      - { type: TextBox, name: predictionColumnName, format: string }
+      - { type: Output, name: rmPredictOV }
+
+  - type: CollapseBox
+    label: APA, Teaching, Publication, and Reproducibility
+    collapsed: false
+    children:
+      - { type: CheckBox, name: apaReport }
+      - { type: CheckBox, name: apaTables }
+      - { type: CheckBox, name: assumptionSummaries }
+      - { type: CheckBox, name: teachingMode }
+      - { type: CheckBox, name: explainSphericity }
+      - { type: CheckBox, name: explainCorrections }
+      - { type: CheckBox, name: effectSizeInterpretation }
+      - { type: CheckBox, name: interactionInterpretation }
+      - { type: CheckBox, name: publicationMode }
+      - { type: CheckBox, name: publicationFigures }
+      - { type: CheckBox, name: publicationTables }
+      - { type: CheckBox, name: exportWord }
+      - { type: CheckBox, name: exportPdf }
+      - { type: CheckBox, name: analysisSyntaxExport }
+      - { type: CheckBox, name: rSyntaxExport }
+      - { type: CheckBox, name: saveAnalysisConfiguration }
+...

@@ -1,0 +1,16 @@
+---
+name: enhancedCorrelation
+title: JASP Enhanced Correlation
+menuGroup: JASP Enhanced Regression
+menuTitle: Correlation
+version: '0.1.0'
+jas: '1.2'
+description:
+    main: jamovi-native shell for the JASP correlation analysis.
+options:
+    - { name: data, type: Data }
+    - { name: variables, title: Variables, type: Variables, suggested: [continuous], permitted: [numeric] }
+    - { name: partialOut, title: Control Variables, type: Variables, suggested: [continuous], permitted: [numeric] }
+    - { name: plots, title: Plots, type: Bool, default: true }
+    - { name: apaReport, title: APA reporting, type: Bool, default: true }
+...

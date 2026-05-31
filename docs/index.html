@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>JASP Enhanced ANOVA for jamovi</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: #1f2933;
+      background: #f7f9fb;
+    }
+    body {
+      margin: 0;
+      line-height: 1.55;
+    }
+    header {
+      background: #ffffff;
+      border-bottom: 1px solid #d9e2ec;
+      padding: 48px 24px;
+    }
+    main {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 32px 24px 56px;
+    }
+    .hero {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+    h1 {
+      margin: 0 0 12px;
+      font-size: 36px;
+      line-height: 1.15;
+    }
+    h2 {
+      margin-top: 36px;
+      border-bottom: 1px solid #d9e2ec;
+      padding-bottom: 8px;
+    }
+    code, pre {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      background: #edf2f7;
+      border-radius: 6px;
+    }
+    code {
+      padding: 2px 5px;
+    }
+    pre {
+      overflow-x: auto;
+      padding: 16px;
+    }
+    .notice {
+      background: #fffbea;
+      border: 1px solid #f0d36b;
+      border-radius: 8px;
+      padding: 16px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+    }
+    .card {
+      background: #ffffff;
+      border: 1px solid #d9e2ec;
+      border-radius: 8px;
+      padding: 16px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="hero">
+      <h1>JASP Enhanced ANOVA for jamovi</h1>
+      <p>A focused jamovi module exposing two active analyses: Classical ANOVA and Repeated Measures ANOVA.</p>
+    </div>
+  </header>
+  <main>
+    <section class="notice">
+      <strong>Development build.</strong>
+      This project is currently scoped to two working analyses. Other JASP ANOVA-family analyses are retained in the repository under <code>jaspEnhancedAnova/disabled/</code> and can be re-enabled later.
+    </section>
+
+    <h2>Active Analyses</h2>
+    <div class="grid">
+      <div class="card">
+        <h3>JASP Enhanced ANOVA</h3>
+        <p>Classical fixed-effects ANOVA with descriptives, effect sizes, diagnostics, custom contrasts, post hoc tests, marginal means, simple effects, raincloud-style plots, and generated residual/prediction columns.</p>
+      </div>
+      <div class="card">
+        <h3>JASP Enhanced Repeated Measures ANOVA</h3>
+        <p>Wide-format repeated-measures ANOVA using selected cells as one within-subject factor, with repeated-measures contrasts, plots, post hoc tests, Friedman fallback, and subject-level output columns.</p>
+      </div>
+    </div>
+
+    <h2>Install</h2>
+    <p>Build artifact:</p>
+    <pre><code>jaspEnhancedAnova_0.1.0.jmo</code></pre>
+    <p>For local manual install on this machine:</p>
+    <pre><code>unzip -q jaspEnhancedAnova_0.1.0.jmo -d /private/tmp/jaspEnhancedAnova-install
+ditto /private/tmp/jaspEnhancedAnova-install/jaspEnhancedAnova \
+  "$HOME/Library/Application Support/jamovi/modules/jaspEnhancedAnova"</code></pre>
+    <p>Fully quit and reopen jamovi after installing.</p>
+
+    <h2>Build</h2>
+    <pre><code>cd jaspEnhancedAnova
+'/Library/Frameworks/R.framework/Versions/4.4-arm64/Resources/library/node/node-darwin/bin/node' \
+  '/Library/Frameworks/R.framework/Versions/4.4-arm64/Resources/library/jmvtools/node_modules/jamovi-compiler/index.js' \
+  --build '.' \
+  --home '/Applications/jamovi.app' \
+  --assume-app-version '2.7.0' \
+  --jmo '../jaspEnhancedAnova_0.1.0.jmo'</code></pre>
+
+    <h2>Attribution</h2>
+    <p>This module adapts functionality from open-source JASP analyses while providing a jamovi-native user experience.</p>
+    <ul>
+      <li>jamovi: <a href="https://www.jamovi.org">https://www.jamovi.org</a></li>
+      <li>JASP: <a href="https://jasp-stats.org">https://jasp-stats.org</a></li>
+      <li>Upstream ANOVA module: <a href="https://github.com/jasp-stats/jaspAnova">https://github.com/jasp-stats/jaspAnova</a></li>
+    </ul>
+  </main>
+</body>
+</html>

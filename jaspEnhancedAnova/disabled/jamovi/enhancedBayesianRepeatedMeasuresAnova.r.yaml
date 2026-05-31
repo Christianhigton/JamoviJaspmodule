@@ -1,0 +1,8 @@
+---
+name: enhancedBayesianRepeatedMeasuresAnova
+title: JASP Enhanced Bayesian Repeated Measures ANOVA
+jrs: '1.1'
+items:
+    - { name: status, title: Implementation Status, type: Html }
+    - { name: about, title: About and Citation, type: Html }
+...

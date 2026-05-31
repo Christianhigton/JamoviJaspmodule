@@ -1,0 +1,85 @@
+---
+name: enhancedAnova
+title: JASP Enhanced ANOVA
+jrs: '1.1'
+items:
+    - { name: status, title: Implementation Status, type: Html }
+    - { name: modelSummary, title: Model Summary, type: Html }
+    - { name: descriptivesSection, title: Descriptive Statistics, type: Html, visible: (descriptives) }
+    - { name: effectSizesSection, title: Effect Sizes, type: Html }
+    - { name: assumptionsSection, title: Assumption Checks and Diagnostics, type: Html }
+    - { name: contrasts, title: Contrasts, type: Html }
+    - { name: orderRestrictions, title: Bayesian and Order Restricted Hypotheses, type: Html }
+    - { name: postHocSection, title: Post Hoc Tests, type: Html, visible: (postHoc) }
+    - { name: marginalMeansSection, title: Estimated Marginal Means, type: Html, visible: (marginalMeans) }
+    - { name: simpleEffectsSection, title: Simple Main Effects, type: Html, visible: (simpleEffects) }
+    - { name: nonparametric, title: Nonparametric Alternatives, type: Html, visible: (kruskalWallis) }
+    - { name: plots, title: Plots, type: Html }
+    - name: qqPlot
+      title: Q-Q Plot of Residuals
+      type: Image
+      visible: (qqPlotResiduals)
+      width: 520
+      height: 420
+      renderFun: .qqPlot
+    - name: residualPlot
+      title: Residual Plot
+      type: Image
+      visible: (residualPlots)
+      width: 520
+      height: 420
+      renderFun: .residualPlot
+    - name: raincloudPlot
+      title: Raincloud Plot
+      type: Image
+      visible: (raincloudPlots)
+      width: 640
+      height: 440
+      renderFun: .raincloudPlot
+    - { name: savedColumns, title: Saved Dataset Columns, type: Html }
+    - name: residsOV
+      title: Residuals
+      type: Output
+      varTitle: Residuals
+      varDescription: Residuals from JASP Enhanced ANOVA
+      measureType: continuous
+      clearWith:
+        - dependent
+        - fixedFactors
+        - covariates
+    - name: studentizedResidsOV
+      title: Studentized residuals
+      type: Output
+      varTitle: Studentized residuals
+      varDescription: Studentized residuals from JASP Enhanced ANOVA
+      measureType: continuous
+      clearWith:
+        - dependent
+        - fixedFactors
+        - covariates
+    - name: standardizedResidsOV
+      title: Standardized residuals
+      type: Output
+      varTitle: Standardized residuals
+      varDescription: Standardized residuals from JASP Enhanced ANOVA
+      measureType: continuous
+      clearWith:
+        - dependent
+        - fixedFactors
+        - covariates
+    - name: predictOV
+      title: Predicted values
+      type: Output
+      varTitle: Predicted values
+      varDescription: Predicted values from JASP Enhanced ANOVA
+      measureType: continuous
+      clearWith:
+        - dependent
+        - fixedFactors
+        - covariates
+    - { name: apa, title: APA Reporting, type: Html, visible: (apaReport) }
+    - { name: teaching, title: Teaching Mode, type: Html, visible: (teachingMode) }
+    - { name: publication, title: Publication Mode, type: Html, visible: (publicationMode) }
+    - { name: reproducibility, title: Reproducibility, type: Html }
+    - { name: about, title: About and Citation, type: Html }
+...

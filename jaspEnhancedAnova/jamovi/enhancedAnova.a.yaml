@@ -1,0 +1,198 @@
+---
+name: enhancedAnova
+title: JASP Enhanced ANOVA
+menuGroup: JASP Enhanced ANOVA
+menuTitle: ANOVA
+version: '0.1.0'
+jas: '1.2'
+description:
+    main: >
+        jamovi-native shell for the full JASP classical ANOVA option surface,
+        including planned feature parity for corrections, contrasts, post hoc
+        tests, plots, marginal means, simple effects, nonparametric alternatives,
+        export functions, APA reporting, teaching mode, and reproducibility.
+options:
+    - { name: data, type: Data }
+
+    # Core variable assignment
+    - { name: dependent, title: Dependent Variable, type: Variable, suggested: [continuous], permitted: [numeric] }
+    - { name: fixedFactors, title: Fixed Factors, type: Variables, suggested: [nominal, ordinal], permitted: [factor] }
+    - { name: covariates, title: Covariates, type: Variables, suggested: [continuous], permitted: [numeric] }
+    - { name: randomFactors, title: Random Factors, type: Variables, suggested: [nominal, ordinal], permitted: [factor] }
+    - { name: wlsWeights, title: WLS Weights, type: Variable, suggested: [continuous], permitted: [numeric] }
+
+    # Display and descriptive statistics
+    - { name: descriptives, title: Descriptive statistics, type: Bool, default: true }
+    - { name: vovkSellke, title: Vovk-Sellke maximum p-ratio, type: Bool, default: false }
+
+    # Effect sizes
+    - { name: omegaSq, title: omega-squared, type: Bool, default: true }
+    - { name: partialOmegaSq, title: partial omega-squared, type: Bool, default: false }
+    - { name: etaSq, title: eta-squared, type: Bool, default: true }
+    - { name: partialEtaSq, title: partial eta-squared, type: Bool, default: true }
+    - { name: effectSizeCi, title: Confidence intervals for effect sizes, type: Bool, default: false }
+    - { name: ciWidth, title: Confidence level, type: Number, min: 50, max: 99.9, default: 95 }
+
+    # Assumption checks and corrections
+    - name: homogeneityCorrection
+      title: Homogeneity correction
+      type: List
+      options:
+        - { name: none, title: None }
+        - { name: brownForsythe, title: Brown-Forsythe }
+        - { name: welch, title: Welch }
+      default: none
+    - { name: qqPlotResiduals, title: Q-Q plot of residuals, type: Bool, default: false }
+    - { name: residualPlots, title: Residual plots, type: Bool, default: false }
+    - { name: leveragePlots, title: Leverage plots, type: Bool, default: false }
+    - { name: influenceDiagnostics, title: Influence diagnostics, type: Bool, default: false }
+    - { name: cooksDistance, title: Cook's Distance, type: Bool, default: false }
+    - { name: mahalanobisDistance, title: Mahalanobis distance, type: Bool, default: false }
+
+    # Contrasts
+    - { name: customContrasts, title: Custom contrasts, type: Bool, default: false }
+    - { name: contrastSyntax, title: Custom contrast syntax, type: String, default: '' }
+    - { name: plannedContrasts, title: Planned contrasts, type: Bool, default: false }
+    - { name: polynomialContrasts, title: Polynomial contrasts, type: Bool, default: false }
+    - { name: repeatedContrasts, title: Repeated contrasts, type: Bool, default: false }
+    - { name: helmertContrasts, title: Helmert contrasts, type: Bool, default: false }
+    - { name: differenceContrasts, title: Difference contrasts, type: Bool, default: false }
+    - { name: deviationContrasts, title: Deviation contrasts, type: Bool, default: false }
+    - { name: contrastCi, title: Contrast confidence intervals, type: Bool, default: true }
+    - { name: contrastCohensD, title: Cohen's d for contrasts, type: Bool, default: false }
+
+    # Bayesian / order restricted hypotheses
+    - { name: orderRestricted, title: Order restricted hypotheses, type: Bool, default: false }
+    - { name: orderRestrictedSyntax, title: Hypothesis syntax, type: String, default: '' }
+    - { name: multipleHypothesisModels, title: Multiple hypothesis models, type: Bool, default: false }
+    - { name: modelComparison, title: Model comparison, type: Bool, default: false }
+    - name: referenceModel
+      title: Reference model
+      type: List
+      options:
+        - { name: unconstrained, title: Unconstrained }
+        - { name: complement, title: Complement }
+        - { name: nullModel, title: 'Null' }
+      default: unconstrained
+    - { name: weightRatios, title: Weight ratios, type: Bool, default: false }
+    - { name: relativeWeightsMatrix, title: Relative weights matrix, type: Bool, default: false }
+    - { name: compareModelCoefficients, title: Compare model coefficients, type: Bool, default: false }
+    - { name: informedHypothesisTests, title: Informed hypothesis tests, type: Bool, default: false }
+    - { name: heterogeneityCorrection, title: Heterogeneity correction, type: Bool, default: false }
+    - { name: bootstrapCi, title: Bootstrap confidence intervals, type: Bool, default: false }
+    - { name: bootstrapSamples, title: Bootstrap samples, type: Integer, min: 100, max: 100000, default: 1000 }
+
+    # Post hoc tests
+    - { name: postHoc, title: Post hoc tests, type: Bool, default: false }
+    - { name: postHocTukey, title: Tukey, type: Bool, default: true }
+    - { name: postHocScheffe, title: Scheffe, type: Bool, default: false }
+    - { name: postHocBonferroni, title: Bonferroni, type: Bool, default: false }
+    - { name: postHocHolm, title: Holm, type: Bool, default: false }
+    - { name: postHocSidak, title: Sidak, type: Bool, default: false }
+    - { name: postHocGamesHowell, title: Games-Howell, type: Bool, default: false }
+    - { name: postHocDunnett, title: Dunnett, type: Bool, default: false }
+    - { name: postHocCi, title: Post hoc confidence intervals, type: Bool, default: true }
+    - { name: postHocSignificantFlags, title: Significant comparison flags, type: Bool, default: true }
+    - { name: postHocLetters, title: Letter-based grouping tables, type: Bool, default: false }
+    - { name: postHocEffectSizes, title: Post hoc effect sizes, type: Bool, default: false }
+    - { name: postHocBootstrap, title: Post hoc bootstrap estimates, type: Bool, default: false }
+    - { name: conditionalComparisons, title: Conditional comparisons for interactions, type: Bool, default: false }
+
+    # Descriptive plots
+    - { name: descriptivePlots, title: Descriptive plots, type: Bool, default: false }
+    - { name: descPlotXAxis, title: Horizontal axis, type: Variable, suggested: [nominal, ordinal], permitted: [factor] }
+    - { name: descPlotLines, title: Separate lines, type: Variable, suggested: [nominal, ordinal], permitted: [factor] }
+    - { name: descPlotSeparate, title: Separate plots, type: Variable, suggested: [nominal, ordinal], permitted: [factor] }
+    - name: descPlotError
+      title: Error bars
+      type: List
+      options:
+        - { name: ci, title: Confidence intervals }
+        - { name: se, title: Standard error }
+      default: ci
+
+    # Bar plots
+    - { name: barPlots, title: Bar plots, type: Bool, default: false }
+    - { name: barPlotXAxis, title: Bar plot horizontal axis, type: Variable, suggested: [nominal, ordinal], permitted: [factor] }
+    - { name: barPlotSeparate, title: Bar plot separate plots, type: Variable, suggested: [nominal, ordinal], permitted: [factor] }
+    - name: barPlotError
+      title: Bar plot error bars
+      type: List
+      options:
+        - { name: ci, title: Confidence intervals }
+        - { name: se, title: Standard error }
+      default: ci
+    - { name: barPlotFixZero, title: Fix horizontal axis to zero, type: Bool, default: false }
+
+    # Raincloud plots
+    - { name: raincloudPlots, title: Raincloud plots, type: Bool, default: false }
+    - { name: raincloudXAxis, title: Raincloud horizontal axis, type: Variable, suggested: [nominal, ordinal], permitted: [factor] }
+    - { name: raincloudSeparate, title: Raincloud separate plots, type: Variable, suggested: [nominal, ordinal], permitted: [factor] }
+    - { name: raincloudHorizontal, title: Horizontal display, type: Bool, default: false }
+
+    # Marginal means
+    - { name: marginalMeans, title: Estimated marginal means, type: Bool, default: false }
+    - { name: marginalMeanTerms, title: Marginal means terms, type: Variables, suggested: [nominal, ordinal], permitted: [factor] }
+    - { name: marginalMeansTable, title: Marginal means table, type: Bool, default: true }
+    - { name: marginalMeansPairwise, title: Pairwise comparisons, type: Bool, default: false }
+    - { name: marginalMeansCi, title: Marginal means confidence intervals, type: Bool, default: true }
+    - { name: marginalMeansCompareZero, title: Compare marginal means to zero, type: Bool, default: false }
+    - name: marginalMeansCiAdjustment
+      title: Confidence interval adjustment
+      type: List
+      options:
+        - { name: none, title: None }
+        - { name: bonferroni, title: Bonferroni }
+        - { name: holm, title: Holm }
+        - { name: sidak, title: Sidak }
+        - { name: tukey, title: Tukey }
+      default: none
+
+    # Simple main effects
+    - { name: simpleEffects, title: Simple effects analysis, type: Bool, default: false }
+    - { name: simpleEffectFactor, title: Simple effect factor, type: Variable, suggested: [nominal, ordinal], permitted: [factor] }
+    - { name: moderatorFactor1, title: Moderator factor 1, type: Variable, suggested: [nominal, ordinal], permitted: [factor] }
+    - { name: moderatorFactor2, title: Moderator factor 2, type: Variable, suggested: [nominal, ordinal], permitted: [factor] }
+    - { name: simpleEffectsTables, title: Simple effects tables, type: Bool, default: true }
+    - { name: simpleEffectsPostHoc, title: Simple effects post hoc comparisons, type: Bool, default: false }
+    - { name: simpleEffectsCi, title: Simple effects confidence intervals, type: Bool, default: true }
+    - { name: simpleEffectsEffectSizes, title: Simple effects effect sizes, type: Bool, default: false }
+
+    # Nonparametric alternatives
+    - { name: kruskalWallis, title: Kruskal-Wallis test, type: Bool, default: false }
+    - { name: kruskalEpsilonSq, title: Kruskal-Wallis epsilon-squared, type: Bool, default: true }
+    - { name: kruskalEtaSq, title: Kruskal-Wallis eta-squared, type: Bool, default: false }
+    - { name: kruskalCi, title: Kruskal-Wallis confidence intervals, type: Bool, default: false }
+    - { name: dunnPostHoc, title: Dunn's post hoc tests, type: Bool, default: false }
+
+    # Save to dataset
+    - { name: saveResiduals, title: Append residuals, type: Bool, default: false }
+    - { name: saveRawResiduals, title: Raw residuals, type: Bool, default: true }
+    - { name: saveStudentizedResiduals, title: Studentized residuals, type: Bool, default: false }
+    - { name: saveStandardizedResiduals, title: Standardized residuals, type: Bool, default: false }
+    - { name: residualColumnName, title: Residual column name, type: String, default: 'anova_residuals' }
+    - { name: residsOV, title: Residuals, type: Output }
+    - { name: studentizedResidsOV, title: Studentized residuals, type: Output }
+    - { name: standardizedResidsOV, title: Standardized residuals, type: Output }
+    - { name: savePredictions, title: Append predictions, type: Bool, default: false }
+    - { name: predictionColumnName, title: Prediction column name, type: String, default: 'anova_predictions' }
+    - { name: predictOV, title: Predicted values, type: Output }
+
+    # Added jamovi enhancements
+    - { name: apaReport, title: APA 7 narrative text, type: Bool, default: true }
+    - { name: apaTables, title: APA 7 tables, type: Bool, default: true }
+    - { name: copyReadyReport, title: Copy-to-clipboard report, type: Bool, default: false }
+    - { name: teachingMode, title: Teaching mode, type: Bool, default: false }
+    - { name: explainStatistics, title: Explanation of each statistic, type: Bool, default: false }
+    - { name: effectSizeInterpretation, title: Interpretation of effect sizes, type: Bool, default: false }
+    - { name: assumptionGuidance, title: Assumption guidance, type: Bool, default: false }
+    - { name: assumptionRemedies, title: Recommended remedies when assumptions fail, type: Bool, default: false }
+    - { name: publicationMode, title: Publication mode, type: Bool, default: false }
+    - { name: publicationTables, title: Publication-ready tables, type: Bool, default: false }
+    - { name: publicationFigures, title: Publication-ready figures, type: Bool, default: false }
+    - { name: exportWord, title: Export to Word, type: Bool, default: false }
+    - { name: exportPdf, title: Export to PDF, type: Bool, default: false }
+    - { name: analysisSyntaxExport, title: Analysis syntax export, type: Bool, default: false }
+    - { name: rSyntaxExport, title: R syntax export, type: Bool, default: false }
+    - { name: saveAnalysisConfiguration, title: Save analysis configuration, type: Bool, default: false }
+...

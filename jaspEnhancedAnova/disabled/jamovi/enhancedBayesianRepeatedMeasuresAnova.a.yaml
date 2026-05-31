@@ -1,0 +1,18 @@
+---
+name: enhancedBayesianRepeatedMeasuresAnova
+title: JASP Enhanced Bayesian Repeated Measures ANOVA
+menuGroup: JASP Enhanced ANOVA
+menuSubgroup: Bayesian
+menuTitle: Bayesian Repeated Measures ANOVA
+version: '0.1.0'
+jas: '1.2'
+description:
+    main: jamovi-native shell for the JASP Bayesian repeated measures ANOVA analysis.
+options:
+    - { name: data, type: Data }
+    - { name: repeatedMeasures, title: Repeated Measures Cells, type: Variables, suggested: [continuous], permitted: [numeric] }
+    - { name: betweenFactors, title: Between-Subject Factors, type: Variables, suggested: [nominal, ordinal], permitted: [factor] }
+    - { name: modelComparison, title: Model comparison, type: Bool, default: true }
+    - { name: posterior, title: Posterior summaries, type: Bool, default: true }
+    - { name: apaReport, title: APA reporting, type: Bool, default: true }
+...

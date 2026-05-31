@@ -1,0 +1,71 @@
+---
+title: JASP Enhanced Regression for jamovi
+name: jaspEnhancedRegression
+version: 0.1.0
+jms: '1.0'
+authors:
+  - JASP Team; jamovi module adaptation contributors
+maintainer: jamovi module adaptation contributors <maintainer@example.org>
+date: '1970-01-01'
+type: R
+description: >-
+  jamovi-native regression module scaffold for adapting the open-source JASP
+  regression analyses while preserving JASP analytical functionality, options,
+  outputs, diagnostics, plots, Bayesian workflows, and attribution.
+analyses:
+  - title: JASP Enhanced Bayesian Correlation
+    name: enhancedBayesianCorrelation
+    ns: jaspEnhancedRegression
+    category: analyses
+    menuGroup: JASP Enhanced Regression
+    menuSubgroup: Bayesian
+    menuTitle: Bayesian Correlation
+    description: jamovi-native shell for the JASP Bayesian correlation analysis.
+  - title: JASP Enhanced Bayesian Linear Regression
+    name: enhancedBayesianLinearRegression
+    ns: jaspEnhancedRegression
+    category: analyses
+    menuGroup: JASP Enhanced Regression
+    menuSubgroup: Bayesian
+    menuTitle: Bayesian Linear Regression
+    description: jamovi-native shell for the JASP Bayesian linear regression analysis.
+  - title: JASP Enhanced Bayesian Logistic Regression
+    name: enhancedBayesianLogisticRegression
+    ns: jaspEnhancedRegression
+    category: analyses
+    menuGroup: JASP Enhanced Regression
+    menuSubgroup: Bayesian
+    menuTitle: Bayesian Logistic Regression
+    description: jamovi-native shell for the JASP Bayesian logistic regression analysis.
+  - title: JASP Enhanced Correlation
+    name: enhancedCorrelation
+    ns: jaspEnhancedRegression
+    category: analyses
+    menuGroup: JASP Enhanced Regression
+    menuTitle: Correlation
+    description: jamovi-native shell for the JASP correlation analysis.
+  - title: JASP Enhanced Generalized Linear Model
+    name: enhancedGeneralizedLinearModel
+    ns: jaspEnhancedRegression
+    category: analyses
+    menuGroup: JASP Enhanced Regression
+    menuTitle: Generalized Linear Model
+    description: jamovi-native shell for the JASP generalized linear model analysis.
+  - title: JASP Enhanced Linear Regression
+    name: enhancedLinearRegression
+    ns: jaspEnhancedRegression
+    category: analyses
+    menuGroup: JASP Enhanced Regression
+    menuTitle: Linear Regression
+    description: jamovi-native shell for the JASP linear regression analysis.
+  - title: JASP Enhanced Logistic Regression
+    name: enhancedLogisticRegression
+    ns: jaspEnhancedRegression
+    category: analyses
+    menuGroup: JASP Enhanced Regression
+    menuTitle: Logistic Regression
+    description: jamovi-native shell for the JASP logistic regression analysis.
+usesNative: true
+minApp: 1.0.8
+
+...

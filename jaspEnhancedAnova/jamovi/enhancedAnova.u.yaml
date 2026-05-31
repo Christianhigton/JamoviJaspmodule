@@ -1,0 +1,221 @@
+---
+name: enhancedAnova
+title: JASP Enhanced ANOVA
+jus: '2.0'
+stage: 0
+compilerMode: tame
+children:
+  - type: VariableSupplier
+    suggested: [continuous, nominal, ordinal]
+    persistentItems: false
+    children:
+      - type: TargetLayoutBox
+        label: Dependent Variable
+        children: [{ type: VariablesListBox, name: dependent, maxItemCount: 1, isTarget: true }]
+      - type: TargetLayoutBox
+        label: Fixed Factors
+        children: [{ type: VariablesListBox, name: fixedFactors, isTarget: true }]
+      - type: TargetLayoutBox
+        label: Covariates
+        children: [{ type: VariablesListBox, name: covariates, isTarget: true }]
+      - type: TargetLayoutBox
+        label: Random Factors
+        children: [{ type: VariablesListBox, name: randomFactors, isTarget: true }]
+      - type: TargetLayoutBox
+        label: WLS Weights
+        children: [{ type: VariablesListBox, name: wlsWeights, maxItemCount: 1, isTarget: true }]
+      - type: TargetLayoutBox
+        label: 'Descriptive Plot: Horizontal Axis'
+        children: [{ type: VariablesListBox, name: descPlotXAxis, maxItemCount: 1, isTarget: true }]
+      - type: TargetLayoutBox
+        label: 'Descriptive Plot: Separate Lines'
+        children: [{ type: VariablesListBox, name: descPlotLines, maxItemCount: 1, isTarget: true }]
+      - type: TargetLayoutBox
+        label: 'Descriptive Plot: Separate Plots'
+        children: [{ type: VariablesListBox, name: descPlotSeparate, maxItemCount: 1, isTarget: true }]
+      - type: TargetLayoutBox
+        label: 'Bar Plot: Horizontal Axis'
+        children: [{ type: VariablesListBox, name: barPlotXAxis, maxItemCount: 1, isTarget: true }]
+      - type: TargetLayoutBox
+        label: 'Bar Plot: Separate Plots'
+        children: [{ type: VariablesListBox, name: barPlotSeparate, maxItemCount: 1, isTarget: true }]
+      - type: TargetLayoutBox
+        label: 'Raincloud Plot: Horizontal Axis'
+        children: [{ type: VariablesListBox, name: raincloudXAxis, maxItemCount: 1, isTarget: true }]
+      - type: TargetLayoutBox
+        label: 'Raincloud Plot: Separate Plots'
+        children: [{ type: VariablesListBox, name: raincloudSeparate, maxItemCount: 1, isTarget: true }]
+      - type: TargetLayoutBox
+        label: Marginal Means Terms
+        children: [{ type: VariablesListBox, name: marginalMeanTerms, isTarget: true }]
+      - type: TargetLayoutBox
+        label: Simple Effect Factor
+        children: [{ type: VariablesListBox, name: simpleEffectFactor, maxItemCount: 1, isTarget: true }]
+      - type: TargetLayoutBox
+        label: Moderator Factor 1
+        children: [{ type: VariablesListBox, name: moderatorFactor1, maxItemCount: 1, isTarget: true }]
+      - type: TargetLayoutBox
+        label: Moderator Factor 2
+        children: [{ type: VariablesListBox, name: moderatorFactor2, maxItemCount: 1, isTarget: true }]
+
+  - type: CollapseBox
+    label: Display and Effect Sizes
+    collapsed: false
+    children:
+      - { type: CheckBox, name: descriptives }
+      - { type: CheckBox, name: vovkSellke }
+      - { type: CheckBox, name: omegaSq }
+      - { type: CheckBox, name: partialOmegaSq }
+      - { type: CheckBox, name: etaSq }
+      - { type: CheckBox, name: partialEtaSq }
+      - { type: CheckBox, name: effectSizeCi }
+      - { type: TextBox, name: ciWidth, format: number }
+
+  - type: CollapseBox
+    label: Assumption Checks and Diagnostics
+    collapsed: false
+    children:
+      - { type: ComboBox, name: homogeneityCorrection }
+      - { type: CheckBox, name: qqPlotResiduals }
+      - { type: CheckBox, name: residualPlots }
+      - { type: CheckBox, name: leveragePlots }
+      - { type: CheckBox, name: influenceDiagnostics }
+      - { type: CheckBox, name: cooksDistance }
+      - { type: CheckBox, name: mahalanobisDistance }
+
+  - type: CollapseBox
+    label: Contrasts
+    collapsed: true
+    children:
+      - { type: CheckBox, name: customContrasts }
+      - { type: TextBox, name: contrastSyntax, format: string }
+      - { type: CheckBox, name: plannedContrasts }
+      - { type: CheckBox, name: polynomialContrasts }
+      - { type: CheckBox, name: repeatedContrasts }
+      - { type: CheckBox, name: helmertContrasts }
+      - { type: CheckBox, name: differenceContrasts }
+      - { type: CheckBox, name: deviationContrasts }
+      - { type: CheckBox, name: contrastCi }
+      - { type: CheckBox, name: contrastCohensD }
+
+  - type: CollapseBox
+    label: Bayesian and Order Restricted Hypotheses
+    collapsed: true
+    children:
+      - { type: CheckBox, name: orderRestricted }
+      - { type: TextBox, name: orderRestrictedSyntax, format: string }
+      - { type: CheckBox, name: multipleHypothesisModels }
+      - { type: CheckBox, name: modelComparison }
+      - { type: ComboBox, name: referenceModel }
+      - { type: CheckBox, name: weightRatios }
+      - { type: CheckBox, name: relativeWeightsMatrix }
+      - { type: CheckBox, name: compareModelCoefficients }
+      - { type: CheckBox, name: informedHypothesisTests }
+      - { type: CheckBox, name: heterogeneityCorrection }
+      - { type: CheckBox, name: bootstrapCi }
+      - { type: TextBox, name: bootstrapSamples, format: number }
+
+  - type: CollapseBox
+    label: Post Hoc Tests
+    collapsed: true
+    children:
+      - { type: CheckBox, name: postHoc }
+      - { type: CheckBox, name: postHocTukey }
+      - { type: CheckBox, name: postHocScheffe }
+      - { type: CheckBox, name: postHocBonferroni }
+      - { type: CheckBox, name: postHocHolm }
+      - { type: CheckBox, name: postHocSidak }
+      - { type: CheckBox, name: postHocGamesHowell }
+      - { type: CheckBox, name: postHocDunnett }
+      - { type: CheckBox, name: postHocCi }
+      - { type: CheckBox, name: postHocSignificantFlags }
+      - { type: CheckBox, name: postHocLetters }
+      - { type: CheckBox, name: postHocEffectSizes }
+      - { type: CheckBox, name: postHocBootstrap }
+      - { type: CheckBox, name: conditionalComparisons }
+
+  - type: CollapseBox
+    label: Descriptive and Bar Plots
+    collapsed: true
+    children:
+      - { type: CheckBox, name: descriptivePlots }
+      - { type: ComboBox, name: descPlotError }
+      - { type: CheckBox, name: barPlots }
+      - { type: ComboBox, name: barPlotError }
+      - { type: CheckBox, name: barPlotFixZero }
+
+  - type: CollapseBox
+    label: Raincloud Plots
+    collapsed: true
+    children:
+      - { type: CheckBox, name: raincloudPlots }
+      - { type: CheckBox, name: raincloudHorizontal }
+
+  - type: CollapseBox
+    label: Marginal Means
+    collapsed: true
+    children:
+      - { type: CheckBox, name: marginalMeans }
+      - { type: CheckBox, name: marginalMeansTable }
+      - { type: CheckBox, name: marginalMeansPairwise }
+      - { type: CheckBox, name: marginalMeansCi }
+      - { type: CheckBox, name: marginalMeansCompareZero }
+      - { type: ComboBox, name: marginalMeansCiAdjustment }
+
+  - type: CollapseBox
+    label: Simple Main Effects
+    collapsed: true
+    children:
+      - { type: CheckBox, name: simpleEffects }
+      - { type: CheckBox, name: simpleEffectsTables }
+      - { type: CheckBox, name: simpleEffectsPostHoc }
+      - { type: CheckBox, name: simpleEffectsCi }
+      - { type: CheckBox, name: simpleEffectsEffectSizes }
+
+  - type: CollapseBox
+    label: Nonparametric Alternatives
+    collapsed: true
+    children:
+      - { type: CheckBox, name: kruskalWallis }
+      - { type: CheckBox, name: kruskalEpsilonSq }
+      - { type: CheckBox, name: kruskalEtaSq }
+      - { type: CheckBox, name: kruskalCi }
+      - { type: CheckBox, name: dunnPostHoc }
+
+  - type: CollapseBox
+    label: Save to Dataset
+    collapsed: true
+    children:
+      - { type: CheckBox, name: saveResiduals }
+      - { type: CheckBox, name: saveRawResiduals }
+      - { type: CheckBox, name: saveStudentizedResiduals }
+      - { type: CheckBox, name: saveStandardizedResiduals }
+      - { type: TextBox, name: residualColumnName, format: string }
+      - { type: Output, name: residsOV }
+      - { type: Output, name: studentizedResidsOV }
+      - { type: Output, name: standardizedResidsOV }
+      - { type: CheckBox, name: savePredictions }
+      - { type: TextBox, name: predictionColumnName, format: string }
+      - { type: Output, name: predictOV }
+
+  - type: CollapseBox
+    label: APA, Teaching, Publication, and Reproducibility
+    collapsed: false
+    children:
+      - { type: CheckBox, name: apaReport }
+      - { type: CheckBox, name: apaTables }
+      - { type: CheckBox, name: copyReadyReport }
+      - { type: CheckBox, name: teachingMode }
+      - { type: CheckBox, name: explainStatistics }
+      - { type: CheckBox, name: effectSizeInterpretation }
+      - { type: CheckBox, name: assumptionGuidance }
+      - { type: CheckBox, name: assumptionRemedies }
+      - { type: CheckBox, name: publicationMode }
+      - { type: CheckBox, name: publicationTables }
+      - { type: CheckBox, name: publicationFigures }
+      - { type: CheckBox, name: exportWord }
+      - { type: CheckBox, name: exportPdf }
+      - { type: CheckBox, name: analysisSyntaxExport }
+      - { type: CheckBox, name: rSyntaxExport }
+      - { type: CheckBox, name: saveAnalysisConfiguration }
+...

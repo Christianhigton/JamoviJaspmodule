@@ -1,0 +1,24 @@
+---
+name: enhancedCorrelation
+title: JASP Enhanced Correlation
+jus: '2.0'
+stage: 0
+compilerMode: tame
+children:
+  - type: VariableSupplier
+    suggested: [continuous, nominal, ordinal]
+    persistentItems: false
+    children:
+      - type: TargetLayoutBox
+        label: Variables
+        children: [{ type: VariablesListBox, name: variables, isTarget: true }]
+      - type: TargetLayoutBox
+        label: Control Variables
+        children: [{ type: VariablesListBox, name: partialOut, isTarget: true }]
+  - type: CollapseBox
+    label: Analysis Options
+    collapsed: false
+    children:
+      - { type: CheckBox, name: plots }
+      - { type: CheckBox, name: apaReport }
+...

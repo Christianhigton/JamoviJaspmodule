@@ -1,0 +1,19 @@
+---
+name: enhancedBayesianAncova
+title: JASP Enhanced Bayesian ANCOVA
+menuGroup: JASP Enhanced ANOVA
+menuSubgroup: Bayesian
+menuTitle: Bayesian ANCOVA
+version: '0.1.0'
+jas: '1.2'
+description:
+    main: jamovi-native shell for the JASP Bayesian ANCOVA analysis.
+options:
+    - { name: data, type: Data }
+    - { name: dependent, title: Dependent Variable, type: Variable, suggested: [continuous], permitted: [numeric] }
+    - { name: fixedFactors, title: Fixed Factors, type: Variables, suggested: [nominal, ordinal], permitted: [factor] }
+    - { name: covariates, title: Covariates, type: Variables, suggested: [continuous], permitted: [numeric] }
+    - { name: modelComparison, title: Model comparison, type: Bool, default: true }
+    - { name: posterior, title: Posterior summaries, type: Bool, default: true }
+    - { name: apaReport, title: APA reporting, type: Bool, default: true }
+...

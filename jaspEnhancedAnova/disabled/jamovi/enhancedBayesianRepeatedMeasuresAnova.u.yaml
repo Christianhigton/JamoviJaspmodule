@@ -1,0 +1,25 @@
+---
+name: enhancedBayesianRepeatedMeasuresAnova
+title: JASP Enhanced Bayesian Repeated Measures ANOVA
+jus: '2.0'
+stage: 0
+compilerMode: tame
+children:
+  - type: VariableSupplier
+    suggested: [continuous, nominal, ordinal]
+    persistentItems: false
+    children:
+      - type: TargetLayoutBox
+        label: Repeated Measures Cells
+        children: [{ type: VariablesListBox, name: repeatedMeasures, isTarget: true }]
+      - type: TargetLayoutBox
+        label: Between-Subject Factors
+        children: [{ type: VariablesListBox, name: betweenFactors, isTarget: true }]
+  - type: CollapseBox
+    label: Bayesian Options
+    collapsed: false
+    children:
+      - { type: CheckBox, name: modelComparison }
+      - { type: CheckBox, name: posterior }
+      - { type: CheckBox, name: apaReport }
+...

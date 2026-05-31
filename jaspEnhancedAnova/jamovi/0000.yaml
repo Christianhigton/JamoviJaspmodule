@@ -1,0 +1,42 @@
+---
+title: JASP Enhanced ANOVA for jamovi
+name: jaspEnhancedAnova
+version: 0.1.0
+jms: '1.0'
+authors:
+  - JASP Team; jamovi module adaptation contributors
+maintainer: jamovi module adaptation contributors <maintainer@example.org>
+date: '1970-01-01'
+type: R
+description: >-
+  jamovi-native ANOVA module focused on the currently implemented classical
+  ANOVA and repeated measures ANOVA workflows.
+analyses:
+  - title: JASP Enhanced ANOVA
+    name: enhancedAnova
+    ns: jaspEnhancedAnova
+    category: analyses
+    menuGroup: JASP Enhanced ANOVA
+    menuTitle: ANOVA
+    description: >
+      jamovi-native shell for the full JASP classical ANOVA option surface,
+      including planned feature parity for corrections, contrasts, post hoc
+      tests, plots, marginal means, simple effects, nonparametric alternatives,
+      export functions, APA reporting, teaching mode, and reproducibility.
+  - title: JASP Enhanced Repeated Measures ANOVA
+    name: enhancedRepeatedMeasuresAnova
+    ns: jaspEnhancedAnova
+    category: analyses
+    menuGroup: JASP Enhanced ANOVA
+    menuTitle: Repeated Measures ANOVA
+    description: >
+      jamovi-native shell for the full JASP repeated measures ANOVA option
+      surface, including repeated measures factor construction, model builder,
+      sphericity testing, contrasts, post hoc tests, plots, marginal means,
+      simple effects, nonparametric repeated measures procedures, export
+      functions, APA reporting, teaching mode, publication mode, diagnostics,
+      and reproducibility.
+usesNative: true
+minApp: 1.0.8
+
+...

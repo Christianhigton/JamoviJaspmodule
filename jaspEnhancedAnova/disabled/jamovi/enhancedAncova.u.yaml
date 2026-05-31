@@ -1,0 +1,28 @@
+---
+name: enhancedAncova
+title: JASP Enhanced ANCOVA
+jus: '2.0'
+stage: 0
+compilerMode: tame
+children:
+  - type: VariableSupplier
+    suggested: [continuous, nominal, ordinal]
+    persistentItems: false
+    children:
+      - type: TargetLayoutBox
+        label: Dependent Variable
+        children: [{ type: VariablesListBox, name: dependent, maxItemCount: 1, isTarget: true }]
+      - type: TargetLayoutBox
+        label: Fixed Factors
+        children: [{ type: VariablesListBox, name: fixedFactors, isTarget: true }]
+      - type: TargetLayoutBox
+        label: Covariates
+        children: [{ type: VariablesListBox, name: covariates, isTarget: true }]
+  - type: CollapseBox
+    label: Analysis Options
+    collapsed: false
+    children:
+      - { type: CheckBox, name: homogeneity }
+      - { type: CheckBox, name: postHoc }
+      - { type: CheckBox, name: apaReport }
+...

@@ -1,0 +1,22 @@
+---
+name: enhancedBayesianCorrelation
+title: JASP Enhanced Bayesian Correlation
+jus: '2.0'
+stage: 0
+compilerMode: tame
+children:
+  - type: VariableSupplier
+    suggested: [continuous]
+    persistentItems: false
+    children:
+      - type: TargetLayoutBox
+        label: Variables
+        children: [{ type: VariablesListBox, name: variables, isTarget: true }]
+  - type: CollapseBox
+    label: Bayesian Options
+    collapsed: false
+    children:
+      - { type: CheckBox, name: prior }
+      - { type: CheckBox, name: posterior }
+      - { type: CheckBox, name: apaReport }
+...

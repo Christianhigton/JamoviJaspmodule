@@ -1,0 +1,8 @@
+---
+name: enhancedLinearRegression
+title: JASP Enhanced Linear Regression
+jrs: '1.1'
+items:
+    - { name: status, title: Implementation Status, type: Html }
+    - { name: about, title: About and Citation, type: Html }
+...

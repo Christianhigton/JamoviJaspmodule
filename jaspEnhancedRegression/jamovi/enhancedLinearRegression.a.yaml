@@ -1,0 +1,18 @@
+---
+name: enhancedLinearRegression
+title: JASP Enhanced Linear Regression
+menuGroup: JASP Enhanced Regression
+menuTitle: Linear Regression
+version: '0.1.0'
+jas: '1.2'
+description:
+    main: jamovi-native shell for the JASP linear regression analysis.
+options:
+    - { name: data, type: Data }
+    - { name: dependent, title: Dependent Variable, type: Variable, suggested: [continuous], permitted: [numeric] }
+    - { name: covariates, title: Covariates, type: Variables, suggested: [continuous], permitted: [numeric] }
+    - { name: factors, title: Factors, type: Variables, suggested: [nominal, ordinal], permitted: [factor] }
+    - { name: modelFit, title: Model fit, type: Bool, default: true }
+    - { name: diagnostics, title: Diagnostics, type: Bool, default: true }
+    - { name: apaReport, title: APA reporting, type: Bool, default: true }
+...

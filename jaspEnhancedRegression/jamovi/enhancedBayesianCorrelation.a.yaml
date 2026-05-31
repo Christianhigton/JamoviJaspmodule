@@ -1,0 +1,17 @@
+---
+name: enhancedBayesianCorrelation
+title: JASP Enhanced Bayesian Correlation
+menuGroup: JASP Enhanced Regression
+menuSubgroup: Bayesian
+menuTitle: Bayesian Correlation
+version: '0.1.0'
+jas: '1.2'
+description:
+    main: jamovi-native shell for the JASP Bayesian correlation analysis.
+options:
+    - { name: data, type: Data }
+    - { name: variables, title: Variables, type: Variables, suggested: [continuous], permitted: [numeric] }
+    - { name: prior, title: Prior sensitivity, type: Bool, default: true }
+    - { name: posterior, title: Posterior summaries, type: Bool, default: true }
+    - { name: apaReport, title: APA reporting, type: Bool, default: true }
+...

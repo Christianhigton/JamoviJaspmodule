@@ -1,0 +1,13 @@
+Package: jaspEnhancedAnova
+Type: Package
+Title: JASP Enhanced ANOVA for jamovi
+Version: 0.1.0
+Author: JASP Team; jamovi module adaptation contributors
+Maintainer: jamovi module adaptation contributors <maintainer@example.org>
+Description: jamovi-native ANOVA module scaffold for adapting the open-source
+    JASP ANOVA analyses while preserving JASP analytical functionality,
+    options, outputs, diagnostics, plots, Bayesian workflows, and attribution.
+License: GPL (>= 2)
+Encoding: UTF-8
+LazyData: true
+Imports: jmvcore (>= 0.8.5), R6

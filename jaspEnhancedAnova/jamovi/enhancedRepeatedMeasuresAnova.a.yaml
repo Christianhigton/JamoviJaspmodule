@@ -1,0 +1,240 @@
+---
+name: enhancedRepeatedMeasuresAnova
+title: JASP Enhanced Repeated Measures ANOVA
+menuGroup: JASP Enhanced ANOVA
+menuTitle: Repeated Measures ANOVA
+version: '0.1.0'
+jas: '1.2'
+description:
+    main: >
+        jamovi-native shell for the full JASP repeated measures ANOVA option
+        surface, including repeated measures factor construction, model builder,
+        sphericity testing, contrasts, post hoc tests, plots, marginal means,
+        simple effects, nonparametric repeated measures procedures, export
+        functions, APA reporting, teaching mode, publication mode, diagnostics,
+        and reproducibility.
+options:
+    - { name: data, type: Data }
+
+    # Repeated measures design and variable assignment
+    - { name: rmFactorNames, title: Repeated measures factor names, type: String, default: 'Time' }
+    - { name: rmFactorLevels, title: Repeated measures factor levels, type: String, default: 'Pre, Post' }
+    - { name: rmFactorSpec, title: Repeated measures factor specification, type: String, default: '' }
+    - { name: repeatedMeasures, title: Repeated Measures Cells, type: Variables, suggested: [continuous], permitted: [numeric] }
+    - { name: betweenFactors, title: Between-Subject Factors, type: Variables, suggested: [nominal, ordinal], permitted: [factor] }
+    - { name: covariates, title: Covariates, type: Variables, suggested: [continuous], permitted: [numeric] }
+    - { name: groupingFactor, title: Optional Grouping Factor, type: Variable, suggested: [nominal, ordinal], permitted: [factor] }
+
+    # Display and descriptive statistics
+    - { name: descriptives, title: Descriptive statistics, type: Bool, default: true }
+    - { name: vovkSellke, title: Vovk-Sellke maximum p-ratio, type: Bool, default: false }
+
+    # Effect sizes
+    - { name: omegaSq, title: omega-squared, type: Bool, default: true }
+    - { name: partialOmegaSq, title: partial omega-squared, type: Bool, default: false }
+    - { name: etaSq, title: eta-squared, type: Bool, default: true }
+    - { name: partialEtaSq, title: partial eta-squared, type: Bool, default: true }
+    - { name: generalizedEtaSq, title: generalized eta-squared, type: Bool, default: true }
+    - { name: effectSizeCi, title: Confidence intervals for effect sizes, type: Bool, default: false }
+    - { name: ciWidth, title: Confidence level, type: Number, min: 50, max: 99.9, default: 95 }
+
+    # Model builder
+    - { name: automaticModel, title: Automatic model creation, type: Bool, default: true }
+    - { name: manualModelTerms, title: Manual model terms, type: String, default: '' }
+    - { name: rmMainEffects, title: Repeated measures main effects, type: Bool, default: true }
+    - { name: rmInteractions, title: Repeated measures interactions, type: Bool, default: true }
+    - { name: rmHigherOrderInteractions, title: Higher-order repeated measures interactions, type: Bool, default: true }
+    - { name: betweenMainEffects, title: Between-subject main effects, type: Bool, default: true }
+    - { name: betweenInteractions, title: Between-subject interactions, type: Bool, default: true }
+    - { name: mixedInteractions, title: Mixed repeated-by-between interactions, type: Bool, default: true }
+    - name: sumOfSquares
+      title: Sum of Squares
+      type: List
+      options:
+        - { name: type1, title: Type I }
+        - { name: type2, title: Type II }
+        - { name: type3, title: Type III }
+      default: type3
+    - { name: poolErrorTerms, title: Pool error term for follow-up tests, type: Bool, default: false }
+
+    # Assumption checks
+    - { name: mauchly, title: Mauchly's Test of Sphericity, type: Bool, default: true }
+    - name: sphericityCorrection
+      title: Sphericity correction
+      type: List
+      options:
+        - { name: none, title: None }
+        - { name: greenhouseGeisser, title: Greenhouse-Geisser }
+        - { name: huynhFeldt, title: Huynh-Feldt }
+      default: greenhouseGeisser
+    - { name: levene, title: Levene's Test, type: Bool, default: true }
+    - { name: homogeneityTests, title: Homogeneity tests, type: Bool, default: true }
+    - { name: qqPlotResiduals, title: Q-Q plot of residuals, type: Bool, default: false }
+    - { name: residualDiagnostics, title: Residual diagnostics, type: Bool, default: false }
+    - { name: residualPlots, title: Residual plots, type: Bool, default: false }
+    - { name: influenceDiagnostics, title: Influence diagnostics, type: Bool, default: false }
+    - { name: cooksDistance, title: Cook's distance, type: Bool, default: false }
+    - { name: mahalanobisDistance, title: Mahalanobis distance, type: Bool, default: false }
+
+    # Repeated measures contrasts
+    - name: rmContrastType
+      title: Repeated measures contrast type
+      type: List
+      options:
+        - { name: none, title: None }
+        - { name: simple, title: Simple }
+        - { name: deviation, title: Deviation }
+        - { name: difference, title: Difference }
+        - { name: helmert, title: Helmert }
+        - { name: polynomial, title: Polynomial }
+        - { name: repeated, title: Repeated }
+      default: none
+    - { name: contrastCi, title: Contrast confidence intervals, type: Bool, default: true }
+    - { name: contrastCohensD, title: Cohen's d for contrasts, type: Bool, default: false }
+    - { name: contrastEffectSizes, title: Effect sizes for contrasts, type: Bool, default: false }
+    - { name: contrastPoolError, title: Pool error term for contrasts, type: Bool, default: false }
+    - { name: rmCustomContrasts, title: Custom repeated measures contrasts, type: Bool, default: false }
+    - { name: rmContrastSyntax, title: Custom contrast syntax, type: String, default: '' }
+
+    # Bayesian / order restricted hypotheses
+    - { name: orderRestricted, title: Order restricted hypotheses, type: Bool, default: false }
+    - { name: orderRestrictedSyntax, title: Restricted hypothesis syntax, type: String, default: '' }
+    - { name: multipleHypothesisModels, title: Multiple hypothesis models, type: Bool, default: false }
+    - { name: hypothesisModelSpec, title: Hypothesis model specification, type: String, default: '' }
+    - { name: modelComparison, title: Model comparison, type: Bool, default: false }
+    - name: referenceModel
+      title: Reference model
+      type: List
+      options:
+        - { name: unconstrained, title: Unconstrained }
+        - { name: complement, title: Complement }
+        - { name: nullModel, title: 'Null' }
+      default: unconstrained
+    - { name: complementModel, title: Complement model, type: Bool, default: false }
+    - { name: weightRatios, title: Weight ratios, type: Bool, default: false }
+    - { name: relativeWeightsMatrix, title: Relative weights matrix, type: Bool, default: false }
+    - { name: compareCoefficients, title: Compare coefficients, type: Bool, default: false }
+    - { name: informedHypothesisTests, title: Informed hypothesis tests, type: Bool, default: false }
+    - { name: bootstrap, title: Bootstrapping, type: Bool, default: false }
+    - { name: bootstrapSamples, title: Bootstrap sample size, type: Integer, min: 100, max: 100000, default: 1000 }
+    - { name: bootstrapCi, title: Bootstrap confidence intervals, type: Bool, default: false }
+
+    # Post hoc tests
+    - { name: postHoc, title: Post hoc tests, type: Bool, default: false }
+    - { name: postHocRmFactors, title: Repeated measures factors, type: Bool, default: true }
+    - { name: postHocBetweenFactors, title: Between-subject factors, type: Bool, default: false }
+    - { name: postHocInteractions, title: Interactions, type: Bool, default: false }
+    - { name: postHocHolm, title: Holm, type: Bool, default: true }
+    - { name: postHocBonferroni, title: Bonferroni, type: Bool, default: false }
+    - { name: postHocTukey, title: Tukey, type: Bool, default: false }
+    - { name: postHocScheffe, title: Scheffe, type: Bool, default: false }
+    - { name: postHocSidak, title: Sidak, type: Bool, default: false }
+    - { name: postHocCi, title: Post hoc confidence intervals, type: Bool, default: true }
+    - { name: postHocSignificantFlags, title: Significant comparison flags, type: Bool, default: true }
+    - { name: postHocLetters, title: Letter-based grouping tables, type: Bool, default: false }
+    - { name: postHocEffectSizes, title: Post hoc effect sizes, type: Bool, default: false }
+    - { name: conditionalComparisons, title: Conditional comparisons for interactions, type: Bool, default: false }
+    - { name: postHocPoolError, title: Pool error term for post hoc tests, type: Bool, default: false }
+
+    # Descriptive plots
+    - { name: descriptivePlots, title: Descriptive plots, type: Bool, default: false }
+    - { name: descPlotXAxis, title: Descriptive plot horizontal axis, type: Variable, suggested: [nominal, ordinal], permitted: [factor] }
+    - { name: descPlotLines, title: Descriptive plot separate lines, type: Variable, suggested: [nominal, ordinal], permitted: [factor] }
+    - { name: descPlotSeparate, title: Descriptive plot separate plots, type: Variable, suggested: [nominal, ordinal], permitted: [factor] }
+    - name: descPlotError
+      title: Descriptive plot error bars
+      type: List
+      options:
+        - { name: ci, title: Confidence intervals }
+        - { name: se, title: Standard error }
+        - { name: normalized, title: Normalized error bars }
+      default: ci
+    - { name: descPlotYAxisLabel, title: Custom y-axis label, type: String, default: '' }
+    - { name: descPlotAverageUnused, title: Average across unused repeated measures factors, type: Bool, default: false }
+
+    # Bar plots
+    - { name: barPlots, title: Bar plots, type: Bool, default: false }
+    - { name: barPlotXAxis, title: Bar plot horizontal axis, type: Variable, suggested: [nominal, ordinal], permitted: [factor] }
+    - { name: barPlotSeparate, title: Bar plot separate plots, type: Variable, suggested: [nominal, ordinal], permitted: [factor] }
+    - name: barPlotError
+      title: Bar plot error bars
+      type: List
+      options:
+        - { name: ci, title: Confidence intervals }
+        - { name: se, title: Standard error }
+        - { name: normalized, title: Normalized error bars }
+      default: ci
+    - { name: barPlotFixZero, title: Fix horizontal axis to zero, type: Bool, default: false }
+    - { name: barPlotYAxisLabel, title: Bar plot custom y-axis label, type: String, default: '' }
+    - { name: barPlotAverageUnused, title: Average across unused RM factors, type: Bool, default: false }
+
+    # Raincloud plots
+    - { name: raincloudPlots, title: Raincloud plots, type: Bool, default: false }
+    - { name: raincloudXAxis, title: Raincloud horizontal axis, type: Variable, suggested: [nominal, ordinal], permitted: [factor] }
+    - { name: raincloudSeparate, title: Raincloud separate plots, type: Variable, suggested: [nominal, ordinal], permitted: [factor] }
+    - { name: raincloudYAxisLabel, title: Raincloud custom y-axis label, type: String, default: '' }
+
+    # Marginal means
+    - { name: marginalMeans, title: Estimated marginal means, type: Bool, default: false }
+    - { name: marginalMeanTerms, title: Marginal means terms, type: Variables, suggested: [nominal, ordinal], permitted: [factor] }
+    - { name: marginalMeansBootstrap, title: Bootstrap marginal means, type: Bool, default: false }
+    - { name: marginalMeansCompareZero, title: Compare marginal means to zero, type: Bool, default: false }
+    - { name: marginalMeansCi, title: Marginal means confidence intervals, type: Bool, default: true }
+    - name: marginalMeansCiAdjustment
+      title: Confidence interval adjustment
+      type: List
+      options:
+        - { name: none, title: None }
+        - { name: bonferroni, title: Bonferroni }
+        - { name: holm, title: Holm }
+        - { name: sidak, title: Sidak }
+        - { name: tukey, title: Tukey }
+      default: none
+    - { name: marginalMeansPoolError, title: Pool error term for marginal means, type: Bool, default: false }
+
+    # Simple main effects
+    - { name: simpleEffects, title: Simple effects analysis, type: Bool, default: false }
+    - { name: simpleEffectFactor, title: Simple effect factor, type: Variable, suggested: [nominal, ordinal], permitted: [factor] }
+    - { name: moderatorFactor1, title: Moderator factor 1, type: Variable, suggested: [nominal, ordinal], permitted: [factor] }
+    - { name: moderatorFactor2, title: Moderator factor 2, type: Variable, suggested: [nominal, ordinal], permitted: [factor] }
+    - { name: simpleEffectsTests, title: Simple effects tests, type: Bool, default: true }
+    - { name: simpleEffectsPairwise, title: Pairwise comparisons, type: Bool, default: false }
+    - { name: simpleEffectsEffectSizes, title: Effect sizes, type: Bool, default: false }
+    - { name: simpleEffectsCi, title: Confidence intervals, type: Bool, default: true }
+    - { name: simpleEffectsPoolError, title: Pool error terms, type: Bool, default: false }
+
+    # Nonparametric repeated measures
+    - { name: friedman, title: Friedman-style repeated measures analysis, type: Bool, default: false }
+    - { name: conoverPostHoc, title: Conover post hoc tests, type: Bool, default: false }
+
+    # Export / save to dataset
+    - { name: saveResiduals, title: Append residuals, type: Bool, default: false }
+    - { name: saveRawResiduals, title: Raw residuals, type: Bool, default: true }
+    - { name: saveStudentizedResiduals, title: Studentized residuals, type: Bool, default: false }
+    - { name: saveStandardizedResiduals, title: Standardized residuals, type: Bool, default: false }
+    - { name: residualColumnName, title: Residual column name, type: String, default: 'rm_anova_residuals' }
+    - { name: rmResidsOV, title: Mean residuals, type: Output }
+    - { name: rmStudentizedResidsOV, title: Mean studentized residuals, type: Output }
+    - { name: rmStandardizedResidsOV, title: Mean standardized residuals, type: Output }
+    - { name: savePredictions, title: Append predicted values, type: Bool, default: false }
+    - { name: predictionColumnName, title: Prediction column name, type: String, default: 'rm_anova_predictions' }
+    - { name: rmPredictOV, title: Mean predicted values, type: Output }
+
+    # Added jamovi enhancements
+    - { name: apaReport, title: APA 7 narrative text, type: Bool, default: true }
+    - { name: apaTables, title: APA 7 tables, type: Bool, default: true }
+    - { name: assumptionSummaries, title: Assumption summaries, type: Bool, default: true }
+    - { name: teachingMode, title: Teaching mode, type: Bool, default: false }
+    - { name: explainSphericity, title: Explanation of sphericity, type: Bool, default: false }
+    - { name: explainCorrections, title: Explanation of corrections, type: Bool, default: false }
+    - { name: effectSizeInterpretation, title: Interpretation of effect sizes, type: Bool, default: false }
+    - { name: interactionInterpretation, title: Interpretation of interactions, type: Bool, default: false }
+    - { name: publicationMode, title: Publication mode, type: Bool, default: false }
+    - { name: publicationFigures, title: Publication-ready figures, type: Bool, default: false }
+    - { name: publicationTables, title: Publication-ready tables, type: Bool, default: false }
+    - { name: exportWord, title: Word export, type: Bool, default: false }
+    - { name: exportPdf, title: PDF export, type: Bool, default: false }
+    - { name: analysisSyntaxExport, title: Analysis syntax, type: Bool, default: false }
+    - { name: rSyntaxExport, title: R syntax export, type: Bool, default: false }
+    - { name: saveAnalysisConfiguration, title: Save analysis configuration, type: Bool, default: false }
+...

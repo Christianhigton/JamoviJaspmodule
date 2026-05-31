@@ -1,0 +1,18 @@
+---
+name: enhancedAncova
+title: JASP Enhanced ANCOVA
+menuGroup: JASP Enhanced ANOVA
+menuTitle: ANCOVA
+version: '0.1.0'
+jas: '1.2'
+description:
+    main: jamovi-native shell for the JASP ANCOVA analysis.
+options:
+    - { name: data, type: Data }
+    - { name: dependent, title: Dependent Variable, type: Variable, suggested: [continuous], permitted: [numeric] }
+    - { name: fixedFactors, title: Fixed Factors, type: Variables, suggested: [nominal, ordinal], permitted: [factor] }
+    - { name: covariates, title: Covariates, type: Variables, suggested: [continuous], permitted: [numeric] }
+    - { name: homogeneity, title: Homogeneity checks, type: Bool, default: true }
+    - { name: postHoc, title: Post hoc comparisons, type: Bool, default: false }
+    - { name: apaReport, title: APA reporting, type: Bool, default: true }
+...
