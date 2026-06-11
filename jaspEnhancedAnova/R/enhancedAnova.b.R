@@ -84,7 +84,9 @@ enhancedAnovaClass <- if (requireNamespace("jmvcore", quietly = TRUE)) R6::R6Cla
             self$results$effectSizesSection$setContent(.je_table_html(effect_tab))
             self$results$assumptionsSection$setContent(assumptions)
             self$results$contrasts$setContent(contrast)
-            self$results$orderRestrictions$setContent(.je_order_restricted_status(self$options))
+            self$results$orderRestrictions$setContent(
+                .je_order_restricted_full(dat, dep, factors, covs, fit, aov_tab, self$options)
+            )
             self$results$postHocSection$setContent(posthoc)
             self$results$marginalMeansSection$setContent(marginal)
             self$results$simpleEffectsSection$setContent(simple)
@@ -991,14 +993,217 @@ enhancedAnovaClass <- if (requireNamespace("jmvcore", quietly = TRUE)) R6::R6Cla
     )
 }
 
-.je_order_restricted_status <- function(options) {
-    if (!isTRUE(options$orderRestricted) && !isTRUE(options$modelComparison) &&
-        !isTRUE(options$informedHypothesisTests))
-        return("<p>Bayesian/order-restricted hypothesis testing is disabled.</p>")
+# ── Order-restricted + Bayesian ANOVA dispatcher ─────────────────────────────
+
+.je_order_restricted_full <- function(dat, dep, factors, covs, fit, aov_tab, options) {
+    any_active <- isTRUE(options$orderRestricted) ||
+                  isTRUE(options$modelComparison)  ||
+                  isTRUE(options$informedHypothesisTests)
+    if (!any_active)
+        return("<p>Bayesian / order-restricted hypothesis testing is disabled.</p>")
+
+    chunks <- character()
+
+    # ── Item 2: Order-restricted inference via bain ───────────────────────────
+    if ((isTRUE(options$orderRestricted) || isTRUE(options$informedHypothesisTests)) &&
+        nzchar(trimws(as.character(options$orderRestrictedSyntax %||% "")))) {
+        chunks <- c(chunks, .je_bain_analysis(fit, options))
+    } else if (isTRUE(options$orderRestricted) || isTRUE(options$informedHypothesisTests)) {
+        chunks <- c(chunks, paste0(
+            "<p><strong>Order-restricted inference (bain):</strong> ",
+            "enter hypothesis constraints in the syntax field, e.g. ",
+            "<code>mu1 &gt; mu2 &gt; mu3</code> or <code>mu1 = mu2 &amp; mu3 &gt; mu1</code>.</p>"
+        ))
+    }
+
+    # ── Item 1: Bayesian ANOVA via BayesFactor ────────────────────────────────
+    if (isTRUE(options$modelComparison))
+        chunks <- c(chunks, .je_bayesian_anova(dat, dep, factors, covs, options))
+
+    paste(chunks, collapse = "")
+}
+
+# ── Item 2: bain — order-restricted / informed hypothesis testing ─────────────
+
+.je_bain_analysis <- function(fit, options) {
+    h_raw <- trimws(as.character(options$orderRestrictedSyntax %||% ""))
+    if (!nzchar(h_raw))
+        return("<p>No hypothesis syntax provided.</p>")
+
+    if (!requireNamespace("bain", quietly = TRUE))
+        return(paste0(
+            "<p><strong>bain not installed.</strong> Install it with ",
+            "<code>install.packages('bain')</code> to run order-restricted inference.</p>",
+            "<p>Hypothesis syntax captured: <pre>", .je_escape(h_raw), "</pre></p>"
+        ))
+
+    result <- tryCatch({
+        br <- bain::bain(fit, hypothesis = h_raw)
+        br
+    }, error = function(e) e)
+
+    if (inherits(result, "error")) {
+        return(paste0(
+            "<p>bain could not process the hypothesis: <em>", .je_escape(result$message), "</em></p>",
+            "<p>Syntax: <pre>", .je_escape(h_raw), "</pre></p>",
+            "<p>Use <code>bain</code> coefficient names (visible in <code>coef(model)</code>). ",
+            "Example: <code>groupB &gt; 0 &amp; groupC &gt; groupB</code></p>"
+        ))
+    }
+
+    # Format the bain output
+    .je_bain_html(result, h_raw)
+}
+
+.je_bain_html <- function(br, h_raw) {
+    # bain result has: $fit (model fit table), $b (BF matrix), $BFmatrix
+    fit_tab <- tryCatch(as.data.frame(br$fit), error = function(e) NULL)
+    bf_tab  <- tryCatch({
+        bfm <- br$BFmatrix
+        if (!is.null(bfm)) {
+            tab <- as.data.frame(round(bfm, 3))
+            tab$Hypothesis <- rownames(tab)
+            tab <- tab[, c("Hypothesis", setdiff(names(tab), "Hypothesis")), drop = FALSE]
+            tab
+        } else NULL
+    }, error = function(e) NULL)
+
+    chunks <- paste0("<h4>Order-restricted / Informed Hypothesis Test (bain)</h4>",
+                     "<p>Hypothesis: <code>", .je_escape(h_raw), "</code></p>")
+
+    if (!is.null(fit_tab)) {
+        # bain::$fit contains: Fit_measure, Com_measure, BF_c, PMPb, PMPa
+        display <- data.frame(check.names = FALSE)
+        for (nm in names(fit_tab))
+            display[[nm]] <- .je_fmt(as.numeric(fit_tab[[nm]]))
+        display <- cbind(data.frame(Hypothesis = rownames(fit_tab), stringsAsFactors = FALSE),
+                         display)
+        chunks <- paste0(chunks, "<h5>Fit &amp; Complexity</h5>", .je_table_html(display))
+    }
+
+    if (!is.null(bf_tab))
+        chunks <- paste0(chunks, "<h5>Bayes Factor Matrix</h5>", .je_table_html(bf_tab))
+
+    # Posterior model probabilities
+    pmp <- tryCatch({
+        pm <- br$fit[, "PMPb", drop = TRUE]
+        if (!is.null(pm)) {
+            tab <- data.frame(
+                Hypothesis = names(pm),
+                PMP        = .je_fmt(as.numeric(pm)),
+                check.names = FALSE
+            )
+            tab
+        } else NULL
+    }, error = function(e) NULL)
+
+    if (!is.null(pmp))
+        chunks <- paste0(chunks, "<h5>Posterior Model Probabilities</h5>",
+                         .je_table_html(pmp))
+
+    chunks
+}
+
+# ── Item 1: Bayesian ANOVA via BayesFactor ────────────────────────────────────
+
+.je_bayesian_anova <- function(dat, dep, factors, covs, options) {
+    if (!requireNamespace("BayesFactor", quietly = TRUE))
+        return(paste0(
+            "<p><strong>BayesFactor not installed.</strong> Install it with ",
+            "<code>install.packages('BayesFactor')</code> to run Bayesian ANOVA.</p>"
+        ))
+
+    if (length(factors) == 0)
+        return("<p>Bayesian ANOVA requires at least one fixed factor.</p>")
+
+    rhs_terms <- c(factors, covs)
+    formula   <- stats::as.formula(paste(dep, "~", paste(rhs_terms, collapse = " + ")))
+
+    bf_result <- tryCatch(
+        BayesFactor::anovaBF(
+            formula       = formula,
+            data          = dat,
+            whichModels   = "withmain",
+            progress      = FALSE
+        ),
+        error = function(e) e
+    )
+
+    if (inherits(bf_result, "error"))
+        return(paste0(
+            "<p>BayesFactor::anovaBF failed: <em>", .je_escape(bf_result$message), "</em></p>"
+        ))
+
+    .je_bayesian_anova_html(bf_result, dep)
+}
+
+.je_bayesian_anova_html <- function(bf_result, dep) {
+    tab <- tryCatch({
+        s  <- summary(bf_result)
+        # BayesFactor summary returns a data.frame with rownames = model names
+        df <- as.data.frame(s)
+        df$Model <- rownames(df)
+        rownames(df) <- NULL
+        df
+    }, error = function(e) NULL)
+
+    if (is.null(tab)) {
+        # Fallback: extract from the BFBayesFactor object directly
+        tab <- tryCatch({
+            bfs   <- as.vector(bf_result)
+            nms   <- names(bf_result)
+            errs  <- attr(bf_result, "error") %||% rep(NA_real_, length(bfs))
+            data.frame(
+                Model    = nms,
+                `BF10`   = .je_fmt(bfs),
+                `log(BF)`= .je_fmt(log(bfs)),
+                `±Error%`= .je_fmt(errs * 100),
+                check.names = FALSE
+            )
+        }, error = function(e) NULL)
+    } else {
+        # Normalise column names from summary output
+        col_bf  <- intersect(c("bf", "BF", "Bayes factor", "bayes.factor"), names(tab))[1]
+        col_err <- intersect(c("error", "Error", "error%"), names(tab))[1]
+        out <- data.frame(Model = tab$Model, check.names = FALSE)
+        if (!is.na(col_bf))  out$BF10     <- .je_fmt(as.numeric(tab[[col_bf]]))
+        if (!is.na(col_bf))  out$`log(BF)`<- .je_fmt(log(pmax(1e-300, as.numeric(tab[[col_bf]]))))
+        if (!is.na(col_err)) out$`±Error%`<- .je_fmt(as.numeric(tab[[col_err]]) * 100)
+        tab <- out
+    }
+
+    # Best model BF against null
+    best_note <- tryCatch({
+        bfs <- as.vector(bf_result)
+        best_idx <- which.max(bfs)
+        paste0("<p>Best model: <strong>", .je_escape(names(bf_result)[best_idx]),
+               "</strong> — BF<sub>10</sub> = ", .je_fmt(bfs[best_idx]),
+               " (vs null model).</p>")
+    }, error = function(e) "")
+
+    # Inclusion BFs (averaging over models that include each predictor)
+    inclusion_note <- tryCatch({
+        inc <- BayesFactor::generalTestBF(bf_result)
+        inc_df <- as.data.frame(inc)
+        inc_df$Predictor <- rownames(inc_df)
+        rownames(inc_df) <- NULL
+        col_bf <- intersect(c("bf", "BF", "Bayes factor"), names(inc_df))[1]
+        if (!is.na(col_bf)) {
+            out <- data.frame(
+                Predictor = inc_df$Predictor,
+                `Incl BF` = .je_fmt(as.numeric(inc_df[[col_bf]])),
+                check.names = FALSE
+            )
+            paste0("<h5>Inclusion Bayes Factors</h5>", .je_table_html(out))
+        } else ""
+    }, error = function(e) "")
+
     paste0(
-        "<p><strong>Hypothesis syntax captured:</strong></p><pre>",
-        .je_escape(options$orderRestrictedSyntax),
-        "</pre><p>Bayes factors and order-restricted model weights require the JASP informed-hypothesis engine (<code>bain</code>/<code>BayesFactor</code>) — not yet ported.</p>"
+        "<h4>Bayesian ANOVA (BayesFactor)</h4>",
+        "<p>All BF values are relative to the null model (intercept only).</p>",
+        best_note,
+        if (!is.null(tab) && nrow(tab) > 0) .je_table_html(tab) else "",
+        inclusion_note
     )
 }
 

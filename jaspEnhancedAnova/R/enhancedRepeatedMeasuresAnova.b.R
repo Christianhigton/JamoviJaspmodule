@@ -33,13 +33,27 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
                 return()
             }
 
-            # Factor names and levels for the within-subject factor
-            rm_levels <- .je_rm_parse_levels(self$options, cells)
+            # Parse factor structure (single or multi-factor)
+            factor_list <- .je_rm_parse_factor_spec(self$options, cells)
+            factor_names <- vapply(factor_list, function(f) f$name, character(1))
+            rm_levels    <- factor_list[[1]]$levels  # backward-compat for single-factor code
+
+            # Validate cell count
+            n_cells_needed <- prod(vapply(factor_list, function(f) length(f$levels), integer(1)))
+            if (n_cells_needed != length(cells)) {
+                self$results$status$setContent(paste0(
+                    "<p>Factor specification requires ", n_cells_needed,
+                    " cells but ", length(cells), " are assigned. ",
+                    "Check the repeated-measures factor specification.</p>"
+                ))
+                .je_rm_set_pending_outputs(self, "Cell count mismatch.")
+                return()
+            }
 
             for (f in between) wide[[f]] <- as.factor(wide[[f]])
 
-            # Fit proper RM ANOVA with within-subject error structure
-            rm_fit <- .je_rm_fit(wide, cells, rm_levels, between, covs)
+            # Fit RM ANOVA with correct within-subject error structure
+            rm_fit <- .je_rm_fit_multi(wide, cells, factor_list, between, covs)
 
             if (!is.null(rm_fit$error)) {
                 self$results$status$setContent(paste0(
@@ -52,8 +66,10 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
             # ANOVA summary tables (within + between strata)
             rm_summary   <- .je_rm_anova_summary(rm_fit, between)
 
-            # Sphericity
-            sphericity   <- .je_rm_sphericity(wide, cells, self$options)
+            # Sphericity — per-effect for multi-factor designs
+            sphericity_list <- .je_rm_sphericity_multi(wide, cells, factor_list, self$options)
+            # For status bar, summarise the first within-subject effect
+            sphericity <- if (length(sphericity_list) > 0) sphericity_list[[1]]$sphericity else NULL
 
             # Effect sizes
             effect_tab   <- .je_rm_effect_sizes_tab(rm_summary, self$options)
@@ -63,7 +79,7 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
             desc_tab     <- .je_rm_descriptives_full(long, between, self$options)
 
             # Assumptions
-            assumptions  <- .je_rm_assumptions_full(long, rm_fit, sphericity, self$options)
+            assumptions  <- .je_rm_assumptions_full(long, rm_fit, sphericity_list, self$options)
 
             # Contrasts
             contrasts_html <- .je_rm_contrasts(long, rm_levels, rm_fit$lm_fit, self$options)
@@ -81,33 +97,42 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
             nonpar_html  <- .je_rm_nonparametric(wide, cells, long, self$options)
 
             # APA
-            apa_html     <- .je_rm_apa(rm_summary, rm_levels, sphericity)
+            apa_html     <- .je_rm_apa(rm_summary, factor_list, sphericity_list)
+
+            sph_summary <- if (!is.null(sphericity) && !is.na(sphericity$W))
+                paste0(" — Mauchly's W = ", .je_fmt(sphericity$W),
+                       ", p = ", .je_p(sphericity$p),
+                       "; GG ε = ", .je_fmt(sphericity$gg_eps),
+                       ", HF ε = ", .je_fmt(sphericity$hf_eps))
+            else ""
+
+            n_factors_str <- if (length(factor_list) == 1)
+                paste0("one within-subject factor (", factor_names[1], ")")
+            else
+                paste0(length(factor_list), " within-subject factors (",
+                       paste(factor_names, collapse = " × "), ")")
 
             self$results$status$setContent(paste0(
-                "<p><strong>Engine:</strong> Repeated-measures ANOVA via <code>aov(Error(Subject/Within))</code>",
-                if (!is.null(sphericity))
-                    paste0(" — Mauchly's W = ", .je_fmt(sphericity$W),
-                           ", p = ", .je_p(sphericity$p),
-                           "; GG ε = ", .je_fmt(sphericity$gg_eps),
-                           ", HF ε = ", .je_fmt(sphericity$hf_eps))
-                else "",
-                ".</p>",
+                "<p><strong>Engine:</strong> Repeated-measures ANOVA with ", n_factors_str,
+                " via <code>aov(Error(Subject/...))</code>", sph_summary, ".</p>",
                 "<p><code>emmeans</code>: ",
                 if (requireNamespace("emmeans", quietly = TRUE)) "installed" else "<strong>missing</strong>",
                 ".</p>"
             ))
 
             self$results$design$setContent(
-                .je_rm_design_html(cells, rm_levels, between, covs)
+                .je_rm_design_html(cells, factor_list, between, covs)
             )
             self$results$modelSummary$setContent(
-                .je_rm_model_html(rm_summary, sphericity, self$options)
+                .je_rm_model_html(rm_summary, sphericity_list, self$options)
             )
             self$results$descriptivesSection$setContent(.je_table_html(desc_tab))
             self$results$effectSizesSection$setContent(.je_table_html(effect_tab))
             self$results$assumptionsSection$setContent(assumptions)
             self$results$contrasts$setContent(contrasts_html)
-            self$results$orderRestrictions$setContent(.je_rm_order_status(self$options))
+            self$results$orderRestrictions$setContent(
+                .je_rm_order_restricted_full(long, rm_fit, factor_list, between, self$options)
+            )
             self$results$postHocSection$setContent(posthoc_html)
             self$results$marginalMeansSection$setContent(marginal_html)
             self$results$simpleEffectsSection$setContent(simple_html)
@@ -118,7 +143,7 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
             self$results$teaching$setContent(.je_rm_teaching_html(self$options))
             self$results$publication$setContent(.je_publication_html(self$options))
             self$results$reproducibility$setContent(
-                .je_rm_repro_html(cells, rm_levels, between, covs)
+                .je_rm_repro_html(cells, factor_list, between, covs)
             )
 
             private$.plotState <- list(long = long, lm_fit = rm_fit$lm_fit)
@@ -197,57 +222,119 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
 
 # ── Design helpers ─────────────────────────────────────────────────────────────
 
-.je_rm_parse_levels <- function(options, cells) {
-    spec <- trimws(as.character(options$rmFactorLevels %||% ""))
-    if (nzchar(spec)) {
-        parts <- trimws(unlist(strsplit(spec, ",", fixed = TRUE)))
-        parts <- parts[nzchar(parts)]
-        if (length(parts) == length(cells)) return(parts)
+# Parse the factor specification from options.
+# Returns a list of lists: list(list(name="Time", levels=c("Pre","Post")), ...)
+# Spec format: "FactorA:level1,level2;FactorB:level1,level2,level3"
+# Falls back to rmFactorNames/rmFactorLevels for single-factor (or empty spec).
+.je_rm_parse_factor_spec <- function(options, cells) {
+    spec <- trimws(as.character(options$rmFactorSpec %||% ""))
+
+    if (nzchar(spec) && grepl(":", spec, fixed = TRUE)) {
+        factor_parts <- trimws(unlist(strsplit(spec, ";", fixed = TRUE)))
+        factors <- lapply(factor_parts, function(fp) {
+            pos <- regexpr(":", fp, fixed = TRUE)
+            if (pos < 0) return(NULL)
+            nm  <- trimws(substr(fp, 1, pos - 1))
+            lvs <- trimws(unlist(strsplit(substr(fp, pos + 1, nchar(fp)), ",", fixed = TRUE)))
+            lvs <- lvs[nzchar(lvs)]
+            if (!nzchar(nm) || length(lvs) < 2) return(NULL)
+            list(name = nm, levels = lvs)
+        })
+        factors <- factors[!vapply(factors, is.null, logical(1))]
+        total <- prod(vapply(factors, function(f) length(f$levels), integer(1)))
+        if (length(factors) > 0 && total == length(cells))
+            return(factors)
     }
-    cells  # fall back to column names as level labels
+
+    # Single-factor fallback
+    nm  <- trimws(as.character(options$rmFactorNames %||% "Within"))
+    if (!nzchar(nm)) nm <- "Within"
+    lvs_str <- trimws(as.character(options$rmFactorLevels %||% ""))
+    lvs <- if (nzchar(lvs_str)) {
+        l <- trimws(unlist(strsplit(lvs_str, ",", fixed = TRUE)))
+        l[nzchar(l)]
+    } else character()
+    if (length(lvs) != length(cells)) lvs <- cells
+    list(list(name = nm, levels = lvs))
 }
 
-.je_rm_wide_to_long <- function(wide, cells, rm_levels, between, covs) {
-    id <- seq_len(nrow(wide))
+# Build a long-format data frame for any number of within-subject factors.
+# factor_list: output of .je_rm_parse_factor_spec()
+# Cells are assumed to be in expand.grid order (last factor varies fastest).
+.je_rm_wide_to_long_multi <- function(wide, cells, factor_list, between, covs) {
+    id          <- seq_len(nrow(wide))
+    factor_names <- vapply(factor_list, function(f) f$name, character(1))
+
+    # All factor-level combinations in expand.grid order
+    combo_grid <- expand.grid(
+        lapply(rev(factor_list), function(f) f$levels),
+        KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE
+    )
+    combo_grid <- combo_grid[, rev(seq_len(ncol(combo_grid))), drop = FALSE]
+    names(combo_grid) <- factor_names
+
     pieces <- lapply(seq_along(cells), function(i) {
-        out <- data.frame(
-            Subject = factor(id),
-            Within  = factor(rm_levels[i], levels = rm_levels),
-            Value   = wide[[cells[i]]],
-            stringsAsFactors = FALSE
-        )
+        out <- data.frame(Subject = factor(id), Value = wide[[cells[i]]])
+        for (fn in factor_names)
+            out[[fn]] <- factor(combo_grid[i, fn],
+                                levels = factor_list[[match(fn, factor_names)]]$levels)
         for (v in c(between, covs)) if (v %in% names(wide)) out[[v]] <- wide[[v]]
         out
     })
-    do.call(rbind, pieces)
+    long <- do.call(rbind, pieces)
+
+    # Keep "Within" column for single-factor backward compat and fallback functions
+    if (length(factor_names) == 1) {
+        long$Within <- long[[factor_names]]
+    } else {
+        long$Within <- interaction(long[, factor_names, drop = FALSE],
+                                   sep = " × ", drop = TRUE)
+    }
+    long
 }
 
 # ── Model fitting ──────────────────────────────────────────────────────────────
 
-.je_rm_fit <- function(wide, cells, rm_levels, between, covs) {
-    long <- .je_rm_wide_to_long(wide, cells, rm_levels, between, covs)
-    for (f in between) long[[f]] <- as.factor(long[[f]])
+.je_rm_fit_multi <- function(wide, cells, factor_list, between, covs) {
+    long         <- .je_rm_wide_to_long_multi(wide, cells, factor_list, between, covs)
+    factor_names <- vapply(factor_list, function(f) f$name, character(1))
 
-    # aov() with proper within-subject error structure
-    rhs_between <- if (length(between) > 0) paste(c(between, covs), collapse = " + ") else
-        if (length(covs) > 0) paste(covs, collapse = " + ") else "1"
-    rhs_within  <- "Within"
-    if (length(between) > 0)
-        rhs_within <- paste0("Within * (", paste(between, collapse = " * "), ")")
+    for (fn in factor_names) long[[fn]] <- as.factor(long[[fn]])
+    for (f  in between)      long[[f]]  <- as.factor(long[[f]])
 
-    aov_form <- stats::as.formula(
-        paste0("Value ~ ", rhs_within, " + Error(Subject/Within)")
-    )
-    aov_fit <- tryCatch(stats::aov(aov_form, data = long), error = function(e) e)
+    # Within-subject part of fixed effects
+    within_rhs <- if (length(factor_names) == 1)
+        factor_names
+    else
+        paste(factor_names, collapse = " * ")
+
+    # Include between-subject factors as crossed with all within effects
+    fixed_rhs <- if (length(between) > 0)
+        paste0(within_rhs, " * (", paste(between, collapse = " * "), ")")
+    else
+        within_rhs
+
+    # Error() term: Subject/(A) or Subject/(A * B * ...)
+    error_term <- if (length(factor_names) == 1)
+        paste0("Subject/", factor_names)
+    else
+        paste0("Subject/(", paste(factor_names, collapse = " * "), ")")
+
+    aov_form <- stats::as.formula(paste("Value ~", fixed_rhs, "+ Error(", error_term, ")"))
+    aov_fit  <- tryCatch(stats::aov(aov_form, data = long), error = function(e) e)
     if (inherits(aov_fit, "error"))
         return(list(error = aov_fit$message))
 
-    # lm() of the same model for residual diagnostics / emmeans
-    lm_form <- stats::as.formula(paste("Value ~ Within", if (length(between) > 0)
-        paste0(" * (", paste(between, collapse = " * "), ")") else ""))
-    lm_fit <- tryCatch(stats::lm(lm_form, data = long), error = function(e) NULL)
+    # Plain lm for residual diagnostics and emmeans (ignores repeated structure but sufficient)
+    lm_form <- stats::as.formula(paste("Value ~", fixed_rhs))
+    lm_fit  <- tryCatch(stats::lm(lm_form, data = long), error = function(e) NULL)
 
-    list(aov_fit = aov_fit, lm_fit = lm_fit, long = long, error = NULL)
+    list(aov_fit    = aov_fit,
+         lm_fit     = lm_fit,
+         long       = long,
+         factor_list  = factor_list,
+         factor_names = factor_names,
+         error      = NULL)
 }
 
 # ── ANOVA summary (within + between strata) ────────────────────────────────────
@@ -272,41 +359,34 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
     result
 }
 
-# ── Sphericity: Mauchly's test + GG/HF epsilons ───────────────────────────────
+# ── Sphericity ────────────────────────────────────────────────────────────────
+# Core Mauchly + GG/HF computation for a k-level wide matrix (k columns, n subjects)
+.je_rm_sphericity_core <- function(mat) {
+    k <- ncol(mat)
+    n <- nrow(mat)
+    if (k < 3 || n < k) return(NULL)
 
-.je_rm_sphericity <- function(wide, cells, options) {
-    k <- length(cells)
-    if (k < 3) return(NULL)  # sphericity only relevant for 3+ levels
+    C      <- stats::contr.helmert(k)
+    C      <- apply(C, 2, function(v) v / sqrt(sum(v^2)))
+    Y      <- mat %*% C
+    S      <- stats::cov(Y)
+    p_hat  <- k - 1
 
-    mat <- as.matrix(wide[, cells, drop = FALSE])
-    n   <- nrow(mat)
-    if (n < k) return(NULL)
-
-    # Orthogonal contrast matrix (k-1 columns)
-    C <- stats::contr.helmert(k)
-    C <- apply(C, 2, function(v) v / sqrt(sum(v^2)))  # normalise
-    Y <- mat %*% C
-    S <- stats::cov(Y)  # (k-1) x (k-1) covariance of contrasts
-
-    # Mauchly's W
     det_S  <- det(S)
     tr_S   <- sum(diag(S))
-    p_hat  <- k - 1
     denom  <- (tr_S / p_hat)^p_hat
-    W      <- if (denom > 0) det_S / denom else NA_real_
+    W      <- if (denom > 0 && det_S > 0) det_S / denom else NA_real_
 
-    # Chi-square approximation for Mauchly's test
     f_val  <- -(n - 1 - (2 * p_hat^2 + p_hat + 2) / (6 * p_hat))
     chi_sq <- if (!is.na(W) && W > 0) f_val * log(W) else NA_real_
     df_mau <- p_hat * (p_hat + 1) / 2 - 1
-    p_mau  <- if (!is.na(chi_sq)) stats::pchisq(-chi_sq, df = df_mau, lower.tail = FALSE) else NA_real_
+    p_mau  <- if (!is.na(chi_sq) && !is.na(df_mau) && df_mau > 0)
+        stats::pchisq(-chi_sq, df = df_mau, lower.tail = FALSE) else NA_real_
 
-    # Greenhouse-Geisser epsilon
     tr_S2  <- sum(S^2)
-    gg_eps <- (tr_S^2) / (p_hat * (tr_S2 - tr_S^2 / p_hat))
-    gg_eps <- max(1 / p_hat, min(1, gg_eps))
+    safe_d <- p_hat * (tr_S2 - tr_S^2 / p_hat)
+    gg_eps <- if (safe_d > 0) max(1 / p_hat, min(1, tr_S^2 / safe_d)) else 1
 
-    # Huynh-Feldt epsilon
     hf_num <- n * p_hat * gg_eps - 2
     hf_den <- p_hat * (n - 1 - p_hat * gg_eps)
     hf_eps <- if (hf_den > 0) min(1, hf_num / hf_den) else 1
@@ -315,36 +395,84 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
          gg_eps = gg_eps, hf_eps = hf_eps, k = k)
 }
 
+# Per-effect sphericity for multi-factor designs.
+# Returns a list of list(effect = <name>, sphericity = <result or NULL>).
+.je_rm_sphericity_multi <- function(wide, cells, factor_list, options) {
+    factor_names <- vapply(factor_list, function(f) f$name, character(1))
+    n_factors    <- length(factor_names)
+
+    # Combination grid matching cell order
+    combo_grid <- expand.grid(
+        lapply(rev(factor_list), function(f) f$levels),
+        KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE
+    )
+    combo_grid <- combo_grid[, rev(seq_len(ncol(combo_grid))), drop = FALSE]
+    names(combo_grid) <- factor_names
+
+    results <- list()
+
+    # Test each main effect: marginalise over other factors by averaging
+    for (fn in factor_names) {
+        these_levels <- factor_list[[match(fn, factor_names)]]$levels
+        if (length(these_levels) < 3) {
+            results[[length(results) + 1]] <- list(effect = fn, sphericity = NULL)
+            next
+        }
+        mat <- do.call(cbind, lapply(these_levels, function(lv) {
+            idx <- which(combo_grid[[fn]] == lv)
+            if (length(idx) == 1) wide[[cells[idx]]]
+            else rowMeans(as.matrix(wide[, cells[idx], drop = FALSE]), na.rm = TRUE)
+        }))
+        colnames(mat) <- these_levels
+        results[[length(results) + 1]] <- list(
+            effect = fn, sphericity = .je_rm_sphericity_core(mat)
+        )
+    }
+
+    # Interaction effect(s) — only for 2-factor case
+    if (n_factors == 2) {
+        ia_name <- paste(factor_names, collapse = " × ")
+        mat     <- as.matrix(wide[, cells, drop = FALSE])
+        results[[length(results) + 1]] <- list(
+            effect = ia_name, sphericity = .je_rm_sphericity_core(mat)
+        )
+    }
+
+    results
+}
+
 # ── Apply sphericity correction to within-subject rows ───────────────────────
+# sphericity_list: output of .je_rm_sphericity_multi()
 
-.je_rm_apply_correction <- function(rm_summary, sphericity, options) {
+.je_rm_apply_correction <- function(rm_summary, sphericity_list, options) {
     correction <- as.character(options$sphericityCorrection %||% "none")
-    if (is.null(sphericity) || correction == "none") return(rm_summary)
+    if (correction == "none" || length(sphericity_list) == 0) return(rm_summary)
 
-    eps <- if (correction == "greenhouseGeisser") sphericity$gg_eps else sphericity$hf_eps
+    for (sph_entry in sphericity_list) {
+        sph <- sph_entry$sphericity
+        if (is.null(sph)) next
+        eps <- if (correction == "greenhouseGeisser") sph$gg_eps else sph$hf_eps
 
-    # Apply to within-subject rows (rows where Stratum contains "Within")
-    within_rows <- grep("Within", rm_summary$Stratum)
-    non_resid   <- within_rows[!grepl("Residuals", rm_summary$Term[within_rows], ignore.case = TRUE)]
+        # Match strata that contain this effect name (Term column)
+        effect_name <- sph_entry$effect
+        hit_rows <- which(
+            grepl(gsub(" × ", ":", effect_name, fixed = TRUE), rm_summary$Stratum, fixed = TRUE) |
+            grepl(effect_name, rm_summary$Term, fixed = TRUE)
+        )
+        non_resid <- hit_rows[!grepl("Residuals", rm_summary$Term[hit_rows], ignore.case = TRUE)]
 
-    for (i in non_resid) {
-        df1 <- rm_summary$Df[i]
-        # Find the corresponding error row in the same stratum
-        err_row <- which(rm_summary$Stratum == rm_summary$Stratum[i] &
-                         grepl("Residuals", rm_summary$Term, ignore.case = TRUE))
-        if (length(err_row) == 0) next
-        df2 <- rm_summary$Df[err_row[1]]
-
-        df1_c <- df1 * eps
-        df2_c <- df2 * eps
-
-        # Recompute p with corrected df
-        f_val <- rm_summary$F[i]
-        if (!is.na(f_val) && !is.na(df1_c) && !is.na(df2_c) && df1_c > 0 && df2_c > 0)
-            rm_summary$p[i] <- stats::pf(f_val, df1_c, df2_c, lower.tail = FALSE)
-
-        rm_summary$Df[i]           <- df1_c
-        rm_summary$Df[err_row[1]]  <- df2_c
+        for (i in non_resid) {
+            err_row <- which(rm_summary$Stratum == rm_summary$Stratum[i] &
+                             grepl("Residuals", rm_summary$Term, ignore.case = TRUE))
+            if (length(err_row) == 0) next
+            df1_c <- rm_summary$Df[i]           * eps
+            df2_c <- rm_summary$Df[err_row[1]]  * eps
+            f_val <- rm_summary$F[i]
+            if (!is.na(f_val) && df1_c > 0 && df2_c > 0)
+                rm_summary$p[i] <- stats::pf(f_val, df1_c, df2_c, lower.tail = FALSE)
+            rm_summary$Df[i]          <- df1_c
+            rm_summary$Df[err_row[1]] <- df2_c
+        }
     }
     rm_summary
 }
@@ -422,7 +550,7 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
 
 # ── Assumptions ───────────────────────────────────────────────────────────────
 
-.je_rm_assumptions_full <- function(long, rm_fit, sphericity, options) {
+.je_rm_assumptions_full <- function(long, rm_fit, sphericity_list, options) {
     out <- character()
 
     # Residual normality
@@ -437,33 +565,34 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
         }
     }
 
-    # Sphericity
-    if (!is.null(sphericity)) {
-        corr <- as.character(options$sphericityCorrection %||% "none")
-        out <- c(out, paste0(
-            "<p>Mauchly's Test of Sphericity: W = ", .je_fmt(sphericity$W),
-            ", χ²(", sphericity$df, ") = ", .je_fmt(sphericity$chi_sq),
-            ", p = ", .je_p(sphericity$p), ".</p>",
-            "<p>Greenhouse-Geisser ε = ", .je_fmt(sphericity$gg_eps),
-            "; Huynh-Feldt ε = ", .je_fmt(sphericity$hf_eps), ".</p>",
-            "<p>Active correction: <strong>",
-            switch(corr, none = "None", greenhouseGeisser = "Greenhouse-Geisser",
-                   huynhFeldt = "Huynh-Feldt", "None"), "</strong>.</p>"
-        ))
-    } else {
-        out <- c(out, "<p>Sphericity not tested (requires ≥ 3 repeated-measures levels).</p>")
-    }
+    # Sphericity — one block per effect
+    corr <- as.character(options$sphericityCorrection %||% "none")
+    corr_label <- switch(corr, none = "None",
+                         greenhouseGeisser = "Greenhouse-Geisser",
+                         huynhFeldt = "Huynh-Feldt", "None")
 
-    # Levene's test for between-subject homogeneity
-    if (isTRUE(options$levene) && length(unique(long$Within)) > 0) {
-        by_level <- split(long, long$Within)
-        lev_results <- lapply(names(by_level), function(lvl) {
-            sub <- by_level[[lvl]]
-            if (length(unique(sub$Subject)) < 2) return(NULL)
-            # One-sample Levene within each RM level — only meaningful with between factors
-            paste0("<p>Levene (", .je_escape(lvl), "): see assumptions section above for between-factor tests.</p>")
-        })
-        out <- c(out, unlist(lev_results[!vapply(lev_results, is.null, logical(1))]))
+    if (length(sphericity_list) > 0) {
+        tested <- FALSE
+        for (e in sphericity_list) {
+            sph <- e$sphericity
+            if (is.null(sph)) {
+                out <- c(out, paste0("<p>Sphericity (", .je_escape(e$effect),
+                                     "): not applicable (≤ 2 levels).</p>"))
+                next
+            }
+            tested <- TRUE
+            out <- c(out, paste0(
+                "<p>Mauchly's test (", .je_escape(e$effect), "): W = ",
+                .je_fmt(sph$W), ", χ²(", sph$df, ") = ", .je_fmt(sph$chi_sq),
+                ", p = ", .je_p(sph$p), ".</p>",
+                "<p>GG ε = ", .je_fmt(sph$gg_eps),
+                "; HF ε = ", .je_fmt(sph$hf_eps), ".</p>"
+            ))
+        }
+        if (tested)
+            out <- c(out, paste0("<p>Active correction: <strong>", corr_label, "</strong>.</p>"))
+    } else {
+        out <- c(out, "<p>Sphericity not tested.</p>")
     }
 
     paste(out, collapse = "")
@@ -471,16 +600,16 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
 
 # ── Model summary HTML ────────────────────────────────────────────────────────
 
-.je_rm_model_html <- function(rm_summary, sphericity, options) {
-    corr_summary <- .je_rm_apply_correction(rm_summary, sphericity, options)
+.je_rm_model_html <- function(rm_summary, sphericity_list, options) {
+    corr_summary <- .je_rm_apply_correction(rm_summary, sphericity_list, options)
     display <- data.frame(
-        Term     = corr_summary$Term,
-        Stratum  = corr_summary$Stratum,
-        df       = .je_fmt(corr_summary$Df),
-        `Sum Sq` = .je_fmt(corr_summary$`Sum Sq`),
-        `Mean Sq`= .je_fmt(corr_summary$`Mean Sq`),
-        F        = .je_fmt(corr_summary$F),
-        p        = .je_p(corr_summary$p),
+        Term      = corr_summary$Term,
+        Stratum   = corr_summary$Stratum,
+        df        = .je_fmt(corr_summary$Df),
+        `Sum Sq`  = .je_fmt(corr_summary$`Sum Sq`),
+        `Mean Sq` = .je_fmt(corr_summary$`Mean Sq`),
+        F         = .je_fmt(corr_summary$F),
+        p         = .je_p(corr_summary$p),
         check.names = FALSE
     )
 
@@ -494,8 +623,32 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
         huynhFeldt        = " (Huynh-Feldt corrected df)",
         ""
     )
+
+    # Sphericity table
+    sph_html <- if (length(sphericity_list) > 0) {
+        sph_rows <- lapply(sphericity_list, function(e) {
+            s <- e$sphericity
+            if (is.null(s)) return(NULL)
+            data.frame(
+                Effect  = e$effect,
+                W       = .je_fmt(s$W),
+                `chi-sq`= .je_fmt(s$chi_sq),
+                df      = .je_fmt(s$df),
+                p       = .je_p(s$p),
+                `GG-eps`= .je_fmt(s$gg_eps),
+                `HF-eps`= .je_fmt(s$hf_eps),
+                check.names = FALSE
+            )
+        })
+        sph_rows <- sph_rows[!vapply(sph_rows, is.null, logical(1))]
+        if (length(sph_rows) > 0)
+            paste0("<h4>Mauchly's Test of Sphericity</h4>",
+                   .je_table_html(do.call(rbind, sph_rows)))
+        else ""
+    } else ""
+
     paste0("<p>Repeated-measures ANOVA summary", corr_label, ".</p>",
-           .je_table_html(display))
+           .je_table_html(display), sph_html)
 }
 
 # ── Contrasts ─────────────────────────────────────────────────────────────────
@@ -574,80 +727,174 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
 
 .je_rm_posthoc <- function(long, rm_fit, between, cells, rm_levels, options) {
     if (!isTRUE(options$postHoc)) return("<p>Post hoc tests are disabled.</p>")
-    chunks <- character()
+    chunks  <- character()
+    has_emm <- requireNamespace("emmeans", quietly = TRUE) && !is.null(rm_fit$lm_fit)
 
+    adj <- if (isTRUE(options$postHocBonferroni)) "bonferroni"
+           else if (isTRUE(options$postHocTukey))  "tukey"
+           else if (isTRUE(options$postHocScheffe)) "scheffe"
+           else if (isTRUE(options$postHocSidak))  "bonferroni"
+           else "holm"
+
+    # ── Within-subject factor pairwise comparisons ────────────────────────────
     if (isTRUE(options$postHocRmFactors)) {
-        if (requireNamespace("emmeans", quietly = TRUE) && !is.null(rm_fit$lm_fit)) {
+        if (has_emm) {
             emm <- tryCatch(emmeans::emmeans(rm_fit$lm_fit, specs = "Within"), error = function(e) NULL)
             if (!is.null(emm)) {
-                adj <- if (isTRUE(options$postHocBonferroni)) "bonferroni"
-                       else if (isTRUE(options$postHocTukey)) "tukey"
-                       else if (isTRUE(options$postHocScheffe)) "scheffe"
-                       else "holm"
                 pw <- tryCatch(as.data.frame(emmeans::contrast(emm, method = "pairwise", adjust = adj)),
                                error = function(e) NULL)
                 if (!is.null(pw)) {
-                    out <- data.frame(
-                        Comparison = as.character(pw$contrast),
-                        Estimate   = .je_fmt(pw$estimate),
-                        SE         = .je_fmt(pw$SE),
-                        df         = .je_fmt(pw$df),
-                        t          = .je_fmt(pw$t.ratio),
-                        p          = .je_p(pw$p.value),
-                        check.names = FALSE
-                    )
-                    if (isTRUE(options$vovkSellke))
-                        out$`VS-MPR` <- .je_fmt(.je_vovk_sellke(pw$p.value))
+                    out <- .je_rm_pw_table(pw, options)
                     chunks <- c(chunks, paste0(
                         "<h4>Within-subject pairwise comparisons (", .je_escape(adj), ")</h4>",
                         .je_table_html(out)
                     ))
+                    if (isTRUE(options$postHocEffectSizes))
+                        chunks <- c(chunks, .je_rm_posthoc_d(pw, long))
                 }
             }
         } else {
-            # Fallback: paired pairwise t-tests
-            adj <- if (isTRUE(options$postHocBonferroni)) "bonferroni" else "holm"
-            pw  <- tryCatch(
-                stats::pairwise.t.test(long$Value, long$Within, paired = TRUE,
-                                       p.adjust.method = adj),
+            pw <- tryCatch(
+                stats::pairwise.t.test(long$Value, long$Within, paired = TRUE, p.adjust.method = adj),
                 error = function(e) NULL
             )
             if (!is.null(pw))
                 chunks <- c(chunks, paste0(
-                    "<h4>Paired pairwise t-tests (", .je_escape(adj), ")</h4>",
+                    "<h4>Paired pairwise t-tests (", .je_escape(adj), ") — install emmeans for full output</h4>",
                     .je_pairwise_html(pw$p.value)
                 ))
         }
     }
 
-    if (isTRUE(options$postHocBetweenFactors) && length(between) > 0 &&
-        requireNamespace("emmeans", quietly = TRUE) && !is.null(rm_fit$lm_fit)) {
+    # ── Between-subject factor pairwise comparisons ───────────────────────────
+    if (isTRUE(options$postHocBetweenFactors) && length(between) > 0 && has_emm) {
         for (f in between) {
             emm <- tryCatch(emmeans::emmeans(rm_fit$lm_fit, specs = f), error = function(e) NULL)
             if (is.null(emm)) next
             pw <- tryCatch(
-                as.data.frame(emmeans::contrast(emm, method = "pairwise", adjust = "holm")),
+                as.data.frame(emmeans::contrast(emm, method = "pairwise", adjust = adj)),
                 error = function(e) NULL
             )
             if (!is.null(pw)) {
-                out <- data.frame(
-                    Comparison = as.character(pw$contrast),
-                    Estimate   = .je_fmt(pw$estimate),
-                    SE         = .je_fmt(pw$SE),
-                    t          = .je_fmt(pw$t.ratio),
-                    p          = .je_p(pw$p.value),
-                    check.names = FALSE
-                )
+                out <- .je_rm_pw_table(pw, options)
                 chunks <- c(chunks, paste0(
-                    "<h4>Between-subjects: ", .je_escape(f), "</h4>",
+                    "<h4>Between-subjects: ", .je_escape(f), " (", .je_escape(adj), ")</h4>",
                     .je_table_html(out)
                 ))
             }
         }
     }
 
+    # ── Interaction post hoc: Within at each level of Between ─────────────────
+    if (isTRUE(options$postHocInteractions) && length(between) > 0 && has_emm) {
+        for (f in between) {
+            # Within-subject comparisons at each level of the between factor
+            emm_w_by_b <- tryCatch(
+                emmeans::emmeans(rm_fit$lm_fit, specs = "Within", by = f),
+                error = function(e) NULL
+            )
+            if (!is.null(emm_w_by_b)) {
+                pw <- tryCatch(
+                    as.data.frame(emmeans::contrast(emm_w_by_b, method = "pairwise", adjust = adj)),
+                    error = function(e) NULL
+                )
+                if (!is.null(pw)) {
+                    out <- .je_rm_pw_table_by(pw, f, options)
+                    chunks <- c(chunks, paste0(
+                        "<h4>Within-subject comparisons by ", .je_escape(f),
+                        " (", .je_escape(adj), ")</h4>",
+                        .je_table_html(out)
+                    ))
+                }
+            }
+
+            # Between-subject comparisons at each level of the within factor
+            emm_b_by_w <- tryCatch(
+                emmeans::emmeans(rm_fit$lm_fit, specs = f, by = "Within"),
+                error = function(e) NULL
+            )
+            if (!is.null(emm_b_by_w)) {
+                pw <- tryCatch(
+                    as.data.frame(emmeans::contrast(emm_b_by_w, method = "pairwise", adjust = adj)),
+                    error = function(e) NULL
+                )
+                if (!is.null(pw)) {
+                    out <- .je_rm_pw_table_by(pw, "Within", options)
+                    chunks <- c(chunks, paste0(
+                        "<h4>Between-subject comparisons (", .je_escape(f),
+                        ") by Within-level (", .je_escape(adj), ")</h4>",
+                        .je_table_html(out)
+                    ))
+                }
+            }
+        }
+    }
+
     if (length(chunks) == 0) return("<p>No post hoc output could be calculated.</p>")
     paste(chunks, collapse = "")
+}
+
+# Helper: format an emmeans pairwise contrast data frame into a display table
+.je_rm_pw_table <- function(pw, options) {
+    out <- data.frame(
+        Comparison = as.character(pw$contrast),
+        Estimate   = .je_fmt(pw$estimate),
+        SE         = .je_fmt(pw$SE),
+        df         = .je_fmt(pw$df),
+        t          = .je_fmt(pw$t.ratio),
+        p          = .je_p(pw$p.value),
+        check.names = FALSE
+    )
+    if (isTRUE(options$postHocSignificantFlags))
+        out$sig <- ifelse(!is.na(pw$p.value) & pw$p.value < .05, "*", "")
+    if (isTRUE(options$vovkSellke))
+        out$`VS-MPR` <- .je_fmt(.je_vovk_sellke(pw$p.value))
+    out
+}
+
+# Helper: format pairwise table when a "by" grouping column is present
+.je_rm_pw_table_by <- function(pw, by_col, options) {
+    by_vals <- if (by_col %in% names(pw)) as.character(pw[[by_col]]) else rep("", nrow(pw))
+    out <- data.frame(
+        By         = by_vals,
+        Comparison = as.character(pw$contrast),
+        Estimate   = .je_fmt(pw$estimate),
+        SE         = .je_fmt(pw$SE),
+        df         = .je_fmt(pw$df),
+        t          = .je_fmt(pw$t.ratio),
+        p          = .je_p(pw$p.value),
+        check.names = FALSE
+    )
+    if (isTRUE(options$postHocSignificantFlags))
+        out$sig <- ifelse(!is.na(pw$p.value) & pw$p.value < .05, "*", "")
+    if (isTRUE(options$vovkSellke))
+        out$`VS-MPR` <- .je_fmt(.je_vovk_sellke(pw$p.value))
+    out
+}
+
+# Cohen's d for within-subject contrasts (from paired differences)
+.je_rm_posthoc_d <- function(pw, long) {
+    wide_v <- tryCatch(
+        stats::reshape(long[, c("Subject", "Within", "Value")],
+                       idvar = "Subject", timevar = "Within", direction = "wide"),
+        error = function(e) NULL
+    )
+    if (is.null(wide_v)) return("")
+    rows <- lapply(seq_len(nrow(pw)), function(i) {
+        parts <- trimws(strsplit(as.character(pw$contrast[i]), " - ")[[1]])
+        if (length(parts) != 2) return(NULL)
+        c1 <- paste0("Value.", parts[1])
+        c2 <- paste0("Value.", parts[2])
+        if (!(c1 %in% names(wide_v)) || !(c2 %in% names(wide_v))) return(NULL)
+        diffs <- wide_v[[c1]] - wide_v[[c2]]
+        d <- mean(diffs, na.rm = TRUE) / stats::sd(diffs, na.rm = TRUE)
+        data.frame(Comparison = as.character(pw$contrast[i]),
+                   `Cohen's d` = .je_fmt(d), check.names = FALSE)
+    })
+    rows <- rows[!vapply(rows, is.null, logical(1))]
+    if (length(rows) == 0) return("")
+    paste0("<h4>Within-subject effect sizes (Cohen's d<sub>z</sub>)</h4>",
+           .je_table_html(do.call(rbind, rows)))
 }
 
 # ── Marginal means ────────────────────────────────────────────────────────────
@@ -748,34 +995,61 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
 
 # ── APA text ──────────────────────────────────────────────────────────────────
 
-.je_rm_apa <- function(rm_summary, rm_levels, sphericity) {
-    within_rows <- rm_summary[grepl("Within", rm_summary$Stratum) &
+.je_rm_apa <- function(rm_summary, factor_list, sphericity_list) {
+    factor_names <- vapply(factor_list, function(f) f$name, character(1))
+    design_str   <- paste(vapply(factor_list, function(f)
+        paste0(f$name, " (", length(f$levels), " levels)"), character(1)), collapse = " × ")
+
+    within_rows <- rm_summary[grepl(factor_names[1], rm_summary$Stratum) &
                               !grepl("Residuals", rm_summary$Term, ignore.case = TRUE), , drop = FALSE]
     if (nrow(within_rows) == 0)
         return("<p>No APA repeated-measures text available.</p>")
-    row    <- within_rows[1, ]
+
+    first_within <- within_rows[1, ]
     df_err <- rm_summary$Df[grepl("Residuals", rm_summary$Term, ignore.case = TRUE) &
-                            grepl("Within",    rm_summary$Stratum)][1]
-    sph_note <- if (!is.null(sphericity) && !is.na(sphericity$p))
-        paste0(" Mauchly's test indicated that the assumption of sphericity was ",
-               if (sphericity$p < .05) "violated" else "met",
-               ", W = ", .je_fmt(sphericity$W), ", p = ", .je_p(sphericity$p), ".")
+                            grepl(factor_names[1], rm_summary$Stratum)][1]
+
+    sph_entry <- if (length(sphericity_list) > 0) sphericity_list[[1]] else NULL
+    sph <- if (!is.null(sph_entry)) sph_entry$sphericity else NULL
+    sph_note <- if (!is.null(sph) && !is.na(sph$p))
+        paste0(" Mauchly's test of sphericity indicated the assumption was ",
+               if (sph$p < .05) "violated" else "met",
+               ", W = ", .je_fmt(sph$W), ", p = ", .je_p(sph$p), ".")
     else ""
-    paste0(
-        "<p>A repeated-measures ANOVA examined differences across ", length(rm_levels),
-        " conditions (", .je_escape(paste(rm_levels, collapse = ", ")), ").", sph_note,
-        " The within-subject effect was <em>F</em>(",
-        .je_fmt(row$Df), ", ", .je_fmt(df_err), ") = ",
-        .je_fmt(row$F), ", <em>p</em> = ", .je_p(row$p), ".</p>"
+
+    blocks <- paste0(
+        "<p>A ", if (length(factor_list) == 1) "one-factor" else paste0(length(factor_list), "-factor"),
+        " repeated-measures ANOVA was conducted: ", .je_escape(design_str), ".", sph_note,
+        " The first within-subject effect (", .je_escape(first_within$Term),
+        ") was <em>F</em>(", .je_fmt(first_within$Df), ", ", .je_fmt(df_err), ") = ",
+        .je_fmt(first_within$F), ", <em>p</em> = ", .je_p(first_within$p), ".</p>"
     )
+
+    # Add blocks for additional effects if multi-factor
+    if (length(factor_list) > 1 && nrow(within_rows) > 1) {
+        extra <- apply(within_rows[-1, , drop = FALSE], 1, function(r) {
+            paste0("<p>", .je_escape(r["Term"]), ": <em>F</em> = ",
+                   .je_fmt(as.numeric(r["F"])), ", <em>p</em> = ",
+                   .je_p(as.numeric(r["p"])), ".</p>")
+        })
+        blocks <- paste0(blocks, paste(extra, collapse = ""))
+    }
+    blocks
 }
 
 # ── HTML helpers specific to RM ───────────────────────────────────────────────
 
-.je_rm_design_html <- function(cells, rm_levels, between, covs) {
+.je_rm_design_html <- function(cells, factor_list, between, covs) {
+    factor_names <- vapply(factor_list, function(f) f$name, character(1))
+    factor_detail <- paste(vapply(factor_list, function(f)
+        paste0(f$name, " (", paste(f$levels, collapse = ", "), ")"),
+        character(1)), collapse = "; ")
+    n_factors_str <- if (length(factor_list) == 1) "1 within-subject factor" else
+        paste0(length(factor_list), " within-subject factors")
     paste0(
-        "<p>Repeated-measures cells: ", .je_escape(paste(cells, collapse = ", ")), "</p>",
-        "<p>Within-subject levels: ", .je_escape(paste(rm_levels, collapse = ", ")), "</p>",
+        "<p>Design: ", .je_escape(n_factors_str), " — ", .je_escape(factor_detail), "</p>",
+        "<p>Cells assigned (", length(cells), "): ",
+        .je_escape(paste(cells, collapse = ", ")), "</p>",
         "<p>Between-subject factors: ",
         .je_escape(if (length(between) == 0) "none" else paste(between, collapse = ", ")), "</p>",
         "<p>Covariates: ",
@@ -788,8 +1062,69 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
         !isTRUE(options$informedHypothesisTests))
         return("<p>Bayesian/order-restricted hypothesis testing is disabled.</p>")
     paste0("<p><strong>Syntax captured:</strong></p><pre>",
-           .je_escape(options$orderRestrictedSyntax),
-           "</pre><p>Bayesian model weights not yet calculated in this build.</p>")
+           .je_escape(options$orderRestrictedSyntax %||% ""),
+           "</pre>")
+}
+
+.je_rm_order_restricted_full <- function(long, rm_fit, factor_list, between, options) {
+    any_active <- isTRUE(options$orderRestricted) ||
+                  isTRUE(options$modelComparison)  ||
+                  isTRUE(options$informedHypothesisTests)
+    if (!any_active)
+        return("<p>Bayesian / order-restricted hypothesis testing is disabled.</p>")
+
+    chunks <- character()
+
+    # Order-restricted inference via bain (uses the lm() fit)
+    if ((isTRUE(options$orderRestricted) || isTRUE(options$informedHypothesisTests)) &&
+        !is.null(rm_fit$lm_fit)) {
+        h_raw <- trimws(as.character(options$orderRestrictedSyntax %||% ""))
+        if (nzchar(h_raw)) {
+            chunks <- c(chunks, .je_bain_analysis(rm_fit$lm_fit, options))
+        } else {
+            chunks <- c(chunks, paste0(
+                "<p><strong>Order-restricted inference (bain):</strong> enter hypothesis ",
+                "constraints in the syntax field.</p>"
+            ))
+        }
+    }
+
+    # Bayesian repeated-measures ANOVA via BayesFactor (uses whichRandom = Subject)
+    if (isTRUE(options$modelComparison))
+        chunks <- c(chunks, .je_bayesian_rm_anova(long, factor_list, between, options))
+
+    paste(chunks, collapse = "")
+}
+
+.je_bayesian_rm_anova <- function(long, factor_list, between, options) {
+    if (!requireNamespace("BayesFactor", quietly = TRUE))
+        return(paste0(
+            "<p><strong>BayesFactor not installed.</strong> ",
+            "Install with <code>install.packages('BayesFactor')</code>.</p>"
+        ))
+
+    factor_names <- vapply(factor_list, function(f) f$name, character(1))
+    rhs_terms    <- c(factor_names, between, "Subject")
+    formula      <- stats::as.formula(
+        paste("Value ~", paste(rhs_terms, collapse = " + "))
+    )
+
+    bf_result <- tryCatch(
+        BayesFactor::anovaBF(
+            formula       = formula,
+            data          = long,
+            whichRandom   = "Subject",
+            whichModels   = "withmain",
+            progress      = FALSE
+        ),
+        error = function(e) e
+    )
+
+    if (inherits(bf_result, "error"))
+        return(paste0("<p>BayesFactor::anovaBF failed: <em>",
+                      .je_escape(bf_result$message), "</em></p>"))
+
+    .je_bayesian_anova_html(bf_result, "Value")
 }
 
 .je_rm_plot_status <- function(long, options) {
@@ -824,10 +1159,12 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
     )
 }
 
-.je_rm_repro_html <- function(cells, rm_levels, between, covs) {
+.je_rm_repro_html <- function(cells, factor_list, between, covs) {
+    factor_str <- paste(vapply(factor_list, function(f)
+        paste0(f$name, ": ", paste(f$levels, collapse = ", ")), character(1)), collapse = "; ")
     paste0(
-        "<p>Repeated-measures cells: <code>", .je_escape(paste(cells, collapse = ", ")), "</code></p>",
-        "<p>Level labels: <code>", .je_escape(paste(rm_levels, collapse = ", ")), "</code></p>",
+        "<p>Cells assigned: <code>", .je_escape(paste(cells, collapse = ", ")), "</code></p>",
+        "<p>Within-subject factor(s): <code>", .je_escape(factor_str), "</code></p>",
         "<p>Between factors: <code>",
         .je_escape(if (length(between) == 0) "none" else paste(between, collapse = ", ")),
         "</code></p>"
