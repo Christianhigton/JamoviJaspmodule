@@ -8,117 +8,100 @@ enhancedAnovaOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Cla
         initialize = function(
             dependent = NULL,
             fixedFactors = NULL,
-            covariates = NULL,
             randomFactors = NULL,
+            covariates = NULL,
             wlsWeights = NULL,
-            descriptives = TRUE,
-            vovkSellke = FALSE,
-            omegaSq = TRUE,
-            partialOmegaSq = FALSE,
-            etaSq = TRUE,
-            partialEtaSq = TRUE,
+            descriptives = FALSE,
+            effectSizeEstimates = FALSE,
+            effectSizeOmegaSquared = TRUE,
+            effectSizePartialOmegaSquared = FALSE,
+            effectSizeEtaSquared = FALSE,
+            effectSizePartialEtaSquared = FALSE,
             effectSizeCi = FALSE,
-            ciWidth = 95,
-            homogeneityCorrection = "none",
-            qqPlotResiduals = FALSE,
-            residualPlots = FALSE,
-            leveragePlots = FALSE,
-            influenceDiagnostics = FALSE,
-            cooksDistance = FALSE,
-            mahalanobisDistance = FALSE,
-            customContrasts = FALSE,
-            contrastSyntax = "",
-            plannedContrasts = FALSE,
-            polynomialContrasts = FALSE,
-            repeatedContrasts = FALSE,
-            helmertContrasts = FALSE,
-            differenceContrasts = FALSE,
-            deviationContrasts = FALSE,
+            effectSizeCiLevel = 95,
+            vovkSellke = FALSE,
+            sumOfSquares = "type3",
+            homogeneityTests = FALSE,
+            homogeneityCorrectionNone = TRUE,
+            homogeneityCorrectionBrown = FALSE,
+            homogeneityCorrectionWelch = FALSE,
+            qqPlot = FALSE,
+            qqPlotCi = FALSE,
+            qqPlotCiLevel = 95,
+            contrastType = "none",
             contrastCi = TRUE,
-            contrastCohensD = FALSE,
-            orderRestricted = FALSE,
-            orderRestrictedSyntax = "",
-            multipleHypothesisModels = FALSE,
-            modelComparison = FALSE,
-            referenceModel = "unconstrained",
-            weightRatios = FALSE,
-            relativeWeightsMatrix = FALSE,
-            compareModelCoefficients = FALSE,
-            informedHypothesisTests = FALSE,
-            heterogeneityCorrection = FALSE,
-            bootstrapCi = FALSE,
-            bootstrapSamples = 1000,
-            postHoc = FALSE,
-            postHocTukey = TRUE,
-            postHocScheffe = FALSE,
-            postHocBonferroni = FALSE,
-            postHocHolm = FALSE,
-            postHocSidak = FALSE,
-            postHocGamesHowell = FALSE,
-            postHocDunnett = FALSE,
+            contrastCiLevel = 95,
+            contrastEffectSize = FALSE,
+            restrictedSyntax = "",
+            restrictedInterceptInclusion = FALSE,
+            restrictedAvailableCoefficients = FALSE,
+            restrictedModelSummaryForAllModels = FALSE,
+            restrictedMarginalMeanForAllModels = FALSE,
+            restrictedInformedHypothesisTestForAllModels = FALSE,
+            restrictedModelComparison = "complement",
+            restrictedModelComparisonWeights = TRUE,
+            restrictedModelComparisonReference = "complement",
+            restrictedModelComparisonMatrix = FALSE,
+            restrictedModelComparisonCoefficients = FALSE,
+            restrictedModelComparisonCoefficientsHighlight = TRUE,
+            restrictedHeterogeneityCorrection = "none",
+            restrictedBootstrap = FALSE,
+            restrictedBootstrapSamples = 1000,
+            restrictedBootstrapCiLevel = 95,
+            restrictedMarginalMeanTerms = NULL,
+            postHocTerms = NULL,
+            postHocTypeStandard = TRUE,
+            postHocTypeStandardBootstrap = FALSE,
+            postHocTypeStandardBootstrapSamples = 1000,
+            postHocTypeStandardEffectSize = FALSE,
+            postHocConditionalTable = FALSE,
+            postHocTypeGames = FALSE,
+            postHocTypeDunnet = FALSE,
+            postHocCorrectionTukey = TRUE,
+            postHocCorrectionScheffe = FALSE,
+            postHocCorrectionBonferroni = FALSE,
+            postHocCorrectionHolm = FALSE,
+            postHocCorrectionSidak = FALSE,
+            postHocCorrectionFdr = FALSE,
             postHocCi = TRUE,
-            postHocSignificantFlags = TRUE,
-            postHocLetters = FALSE,
-            postHocEffectSizes = FALSE,
-            postHocBootstrap = FALSE,
-            conditionalComparisons = FALSE,
-            descriptivePlots = FALSE,
-            descPlotXAxis = NULL,
-            descPlotLines = NULL,
-            descPlotSeparate = NULL,
-            descPlotError = "ci",
-            barPlots = FALSE,
-            barPlotXAxis = NULL,
-            barPlotSeparate = NULL,
-            barPlotError = "ci",
-            barPlotFixZero = FALSE,
-            raincloudPlots = FALSE,
-            raincloudXAxis = NULL,
-            raincloudSeparate = NULL,
-            raincloudHorizontal = FALSE,
-            marginalMeans = FALSE,
+            postHocCiLevel = 95,
+            postHocSignificanceFlag = FALSE,
+            postHocLetterTable = FALSE,
+            postHocLetterAlpha = 0.05,
+            descriptivePlotHorizontalAxis = NULL,
+            descriptivePlotSeparateLines = NULL,
+            descriptivePlotSeparatePlot = NULL,
+            descriptivePlotErrorBar = TRUE,
+            descriptivePlotErrorBarType = "ci",
+            descriptivePlotCiLevel = 95,
+            barPlotHorizontalAxis = NULL,
+            barPlotSeparatePlots = NULL,
+            barPlotErrorBars = TRUE,
+            barPlotErrorBarType = "ci",
+            barPlotCiInterval = 95,
+            barPlotHorizontalZeroFix = TRUE,
+            rainCloudHorizontalAxis = NULL,
+            rainCloudSeparatePlots = NULL,
+            rainCloudHorizontalDisplay = FALSE,
             marginalMeanTerms = NULL,
-            marginalMeansTable = TRUE,
-            marginalMeansPairwise = FALSE,
-            marginalMeansCi = TRUE,
-            marginalMeansCompareZero = FALSE,
-            marginalMeansCiAdjustment = "none",
-            simpleEffects = FALSE,
-            simpleEffectFactor = NULL,
-            moderatorFactor1 = NULL,
-            moderatorFactor2 = NULL,
-            simpleEffectsTables = TRUE,
-            simpleEffectsPostHoc = FALSE,
-            simpleEffectsCi = TRUE,
-            simpleEffectsEffectSizes = FALSE,
-            kruskalWallis = FALSE,
-            kruskalEpsilonSq = TRUE,
-            kruskalEtaSq = FALSE,
-            kruskalCi = FALSE,
-            dunnPostHoc = FALSE,
-            saveResiduals = FALSE,
-            saveRawResiduals = TRUE,
-            saveStudentizedResiduals = FALSE,
-            saveStandardizedResiduals = FALSE,
-            residualColumnName = "anova_residuals",
-            savePredictions = FALSE,
-            predictionColumnName = "anova_predictions",
-            apaReport = TRUE,
-            apaTables = TRUE,
-            copyReadyReport = FALSE,
-            teachingMode = FALSE,
-            explainStatistics = FALSE,
-            effectSizeInterpretation = FALSE,
-            assumptionGuidance = FALSE,
-            assumptionRemedies = FALSE,
-            publicationMode = FALSE,
-            publicationTables = FALSE,
-            publicationFigures = FALSE,
-            exportWord = FALSE,
-            exportPdf = FALSE,
-            analysisSyntaxExport = FALSE,
-            rSyntaxExport = FALSE,
-            saveAnalysisConfiguration = FALSE, ...) {
+            marginalMeanBootstrap = FALSE,
+            marginalMeanBootstrapSamples = 1000,
+            marginalMeanComparedToZero = FALSE,
+            marginalMeanCiCorrection = "none",
+            simpleMainEffectFactor = NULL,
+            simpleMainEffectModeratorFactorOne = NULL,
+            simpleMainEffectModeratorFactorTwo = NULL,
+            kruskalWallisFactors = NULL,
+            kruskalEffectSizeEstimates = FALSE,
+            kruskalEpsilon = TRUE,
+            kruskalEta = FALSE,
+            kruskalCiLevel = 95,
+            postHocTypeDunn = FALSE,
+            residualsSavedToData = FALSE,
+            residualsSavedToDataColumn = "residuals",
+            residualsSavedToDataType = "raw",
+            predictionsSavedToData = FALSE,
+            predictionsSavedToDataColumn = "predictions", ...) {
 
             super$initialize(
                 package="jaspEnhancedAnova",
@@ -141,13 +124,6 @@ enhancedAnovaOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Cla
                     "ordinal"),
                 permitted=list(
                     "factor"))
-            private$..covariates <- jmvcore::OptionVariables$new(
-                "covariates",
-                covariates,
-                suggested=list(
-                    "continuous"),
-                permitted=list(
-                    "numeric"))
             private$..randomFactors <- jmvcore::OptionVariables$new(
                 "randomFactors",
                 randomFactors,
@@ -156,6 +132,13 @@ enhancedAnovaOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Cla
                     "ordinal"),
                 permitted=list(
                     "factor"))
+            private$..covariates <- jmvcore::OptionVariables$new(
+                "covariates",
+                covariates,
+                suggested=list(
+                    "continuous"),
+                permitted=list(
+                    "numeric"))
             private$..wlsWeights <- jmvcore::OptionVariable$new(
                 "wlsWeights",
                 wlsWeights,
@@ -166,312 +149,380 @@ enhancedAnovaOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Cla
             private$..descriptives <- jmvcore::OptionBool$new(
                 "descriptives",
                 descriptives,
-                default=TRUE)
-            private$..vovkSellke <- jmvcore::OptionBool$new(
-                "vovkSellke",
-                vovkSellke,
                 default=FALSE)
-            private$..omegaSq <- jmvcore::OptionBool$new(
-                "omegaSq",
-                omegaSq,
-                default=TRUE)
-            private$..partialOmegaSq <- jmvcore::OptionBool$new(
-                "partialOmegaSq",
-                partialOmegaSq,
+            private$..effectSizeEstimates <- jmvcore::OptionBool$new(
+                "effectSizeEstimates",
+                effectSizeEstimates,
                 default=FALSE)
-            private$..etaSq <- jmvcore::OptionBool$new(
-                "etaSq",
-                etaSq,
+            private$..effectSizeOmegaSquared <- jmvcore::OptionBool$new(
+                "effectSizeOmegaSquared",
+                effectSizeOmegaSquared,
                 default=TRUE)
-            private$..partialEtaSq <- jmvcore::OptionBool$new(
-                "partialEtaSq",
-                partialEtaSq,
-                default=TRUE)
+            private$..effectSizePartialOmegaSquared <- jmvcore::OptionBool$new(
+                "effectSizePartialOmegaSquared",
+                effectSizePartialOmegaSquared,
+                default=FALSE)
+            private$..effectSizeEtaSquared <- jmvcore::OptionBool$new(
+                "effectSizeEtaSquared",
+                effectSizeEtaSquared,
+                default=FALSE)
+            private$..effectSizePartialEtaSquared <- jmvcore::OptionBool$new(
+                "effectSizePartialEtaSquared",
+                effectSizePartialEtaSquared,
+                default=FALSE)
             private$..effectSizeCi <- jmvcore::OptionBool$new(
                 "effectSizeCi",
                 effectSizeCi,
                 default=FALSE)
-            private$..ciWidth <- jmvcore::OptionNumber$new(
-                "ciWidth",
-                ciWidth,
+            private$..effectSizeCiLevel <- jmvcore::OptionNumber$new(
+                "effectSizeCiLevel",
+                effectSizeCiLevel,
                 min=50,
                 max=99.9,
                 default=95)
-            private$..homogeneityCorrection <- jmvcore::OptionList$new(
-                "homogeneityCorrection",
-                homogeneityCorrection,
+            private$..vovkSellke <- jmvcore::OptionBool$new(
+                "vovkSellke",
+                vovkSellke,
+                default=FALSE)
+            private$..sumOfSquares <- jmvcore::OptionList$new(
+                "sumOfSquares",
+                sumOfSquares,
+                options=list(
+                    "type1",
+                    "type2",
+                    "type3"),
+                default="type3")
+            private$..homogeneityTests <- jmvcore::OptionBool$new(
+                "homogeneityTests",
+                homogeneityTests,
+                default=FALSE)
+            private$..homogeneityCorrectionNone <- jmvcore::OptionBool$new(
+                "homogeneityCorrectionNone",
+                homogeneityCorrectionNone,
+                default=TRUE)
+            private$..homogeneityCorrectionBrown <- jmvcore::OptionBool$new(
+                "homogeneityCorrectionBrown",
+                homogeneityCorrectionBrown,
+                default=FALSE)
+            private$..homogeneityCorrectionWelch <- jmvcore::OptionBool$new(
+                "homogeneityCorrectionWelch",
+                homogeneityCorrectionWelch,
+                default=FALSE)
+            private$..qqPlot <- jmvcore::OptionBool$new(
+                "qqPlot",
+                qqPlot,
+                default=FALSE)
+            private$..qqPlotCi <- jmvcore::OptionBool$new(
+                "qqPlotCi",
+                qqPlotCi,
+                default=FALSE)
+            private$..qqPlotCiLevel <- jmvcore::OptionNumber$new(
+                "qqPlotCiLevel",
+                qqPlotCiLevel,
+                min=50,
+                max=99.9,
+                default=95)
+            private$..contrastType <- jmvcore::OptionList$new(
+                "contrastType",
+                contrastType,
                 options=list(
                     "none",
-                    "brownForsythe",
-                    "welch"),
+                    "deviation",
+                    "simple",
+                    "difference",
+                    "helmert",
+                    "repeated",
+                    "polynomial"),
                 default="none")
-            private$..qqPlotResiduals <- jmvcore::OptionBool$new(
-                "qqPlotResiduals",
-                qqPlotResiduals,
-                default=FALSE)
-            private$..residualPlots <- jmvcore::OptionBool$new(
-                "residualPlots",
-                residualPlots,
-                default=FALSE)
-            private$..leveragePlots <- jmvcore::OptionBool$new(
-                "leveragePlots",
-                leveragePlots,
-                default=FALSE)
-            private$..influenceDiagnostics <- jmvcore::OptionBool$new(
-                "influenceDiagnostics",
-                influenceDiagnostics,
-                default=FALSE)
-            private$..cooksDistance <- jmvcore::OptionBool$new(
-                "cooksDistance",
-                cooksDistance,
-                default=FALSE)
-            private$..mahalanobisDistance <- jmvcore::OptionBool$new(
-                "mahalanobisDistance",
-                mahalanobisDistance,
-                default=FALSE)
-            private$..customContrasts <- jmvcore::OptionBool$new(
-                "customContrasts",
-                customContrasts,
-                default=FALSE)
-            private$..contrastSyntax <- jmvcore::OptionString$new(
-                "contrastSyntax",
-                contrastSyntax,
-                default="")
-            private$..plannedContrasts <- jmvcore::OptionBool$new(
-                "plannedContrasts",
-                plannedContrasts,
-                default=FALSE)
-            private$..polynomialContrasts <- jmvcore::OptionBool$new(
-                "polynomialContrasts",
-                polynomialContrasts,
-                default=FALSE)
-            private$..repeatedContrasts <- jmvcore::OptionBool$new(
-                "repeatedContrasts",
-                repeatedContrasts,
-                default=FALSE)
-            private$..helmertContrasts <- jmvcore::OptionBool$new(
-                "helmertContrasts",
-                helmertContrasts,
-                default=FALSE)
-            private$..differenceContrasts <- jmvcore::OptionBool$new(
-                "differenceContrasts",
-                differenceContrasts,
-                default=FALSE)
-            private$..deviationContrasts <- jmvcore::OptionBool$new(
-                "deviationContrasts",
-                deviationContrasts,
-                default=FALSE)
             private$..contrastCi <- jmvcore::OptionBool$new(
                 "contrastCi",
                 contrastCi,
                 default=TRUE)
-            private$..contrastCohensD <- jmvcore::OptionBool$new(
-                "contrastCohensD",
-                contrastCohensD,
+            private$..contrastCiLevel <- jmvcore::OptionNumber$new(
+                "contrastCiLevel",
+                contrastCiLevel,
+                min=50,
+                max=99.9,
+                default=95)
+            private$..contrastEffectSize <- jmvcore::OptionBool$new(
+                "contrastEffectSize",
+                contrastEffectSize,
                 default=FALSE)
-            private$..orderRestricted <- jmvcore::OptionBool$new(
-                "orderRestricted",
-                orderRestricted,
-                default=FALSE)
-            private$..orderRestrictedSyntax <- jmvcore::OptionString$new(
-                "orderRestrictedSyntax",
-                orderRestrictedSyntax,
+            private$..restrictedSyntax <- jmvcore::OptionString$new(
+                "restrictedSyntax",
+                restrictedSyntax,
                 default="")
-            private$..multipleHypothesisModels <- jmvcore::OptionBool$new(
-                "multipleHypothesisModels",
-                multipleHypothesisModels,
+            private$..restrictedInterceptInclusion <- jmvcore::OptionBool$new(
+                "restrictedInterceptInclusion",
+                restrictedInterceptInclusion,
                 default=FALSE)
-            private$..modelComparison <- jmvcore::OptionBool$new(
-                "modelComparison",
-                modelComparison,
+            private$..restrictedAvailableCoefficients <- jmvcore::OptionBool$new(
+                "restrictedAvailableCoefficients",
+                restrictedAvailableCoefficients,
                 default=FALSE)
-            private$..referenceModel <- jmvcore::OptionList$new(
-                "referenceModel",
-                referenceModel,
+            private$..restrictedModelSummaryForAllModels <- jmvcore::OptionBool$new(
+                "restrictedModelSummaryForAllModels",
+                restrictedModelSummaryForAllModels,
+                default=FALSE)
+            private$..restrictedMarginalMeanForAllModels <- jmvcore::OptionBool$new(
+                "restrictedMarginalMeanForAllModels",
+                restrictedMarginalMeanForAllModels,
+                default=FALSE)
+            private$..restrictedInformedHypothesisTestForAllModels <- jmvcore::OptionBool$new(
+                "restrictedInformedHypothesisTestForAllModels",
+                restrictedInformedHypothesisTestForAllModels,
+                default=FALSE)
+            private$..restrictedModelComparison <- jmvcore::OptionList$new(
+                "restrictedModelComparison",
+                restrictedModelComparison,
                 options=list(
-                    "unconstrained",
                     "complement",
-                    "nullModel"),
-                default="unconstrained")
-            private$..weightRatios <- jmvcore::OptionBool$new(
-                "weightRatios",
-                weightRatios,
+                    "unconstrained",
+                    "none"),
+                default="complement")
+            private$..restrictedModelComparisonWeights <- jmvcore::OptionBool$new(
+                "restrictedModelComparisonWeights",
+                restrictedModelComparisonWeights,
+                default=TRUE)
+            private$..restrictedModelComparisonReference <- jmvcore::OptionList$new(
+                "restrictedModelComparisonReference",
+                restrictedModelComparisonReference,
+                options=list(
+                    "complement",
+                    "unconstrained"),
+                default="complement")
+            private$..restrictedModelComparisonMatrix <- jmvcore::OptionBool$new(
+                "restrictedModelComparisonMatrix",
+                restrictedModelComparisonMatrix,
                 default=FALSE)
-            private$..relativeWeightsMatrix <- jmvcore::OptionBool$new(
-                "relativeWeightsMatrix",
-                relativeWeightsMatrix,
+            private$..restrictedModelComparisonCoefficients <- jmvcore::OptionBool$new(
+                "restrictedModelComparisonCoefficients",
+                restrictedModelComparisonCoefficients,
                 default=FALSE)
-            private$..compareModelCoefficients <- jmvcore::OptionBool$new(
-                "compareModelCoefficients",
-                compareModelCoefficients,
+            private$..restrictedModelComparisonCoefficientsHighlight <- jmvcore::OptionBool$new(
+                "restrictedModelComparisonCoefficientsHighlight",
+                restrictedModelComparisonCoefficientsHighlight,
+                default=TRUE)
+            private$..restrictedHeterogeneityCorrection <- jmvcore::OptionList$new(
+                "restrictedHeterogeneityCorrection",
+                restrictedHeterogeneityCorrection,
+                options=list(
+                    "none",
+                    "huberWhite0",
+                    "huberWhite1",
+                    "huberWhite2",
+                    "huberWhite3",
+                    "huberWhite4",
+                    "huberWhite4m",
+                    "huberWhite5"),
+                default="none")
+            private$..restrictedBootstrap <- jmvcore::OptionBool$new(
+                "restrictedBootstrap",
+                restrictedBootstrap,
                 default=FALSE)
-            private$..informedHypothesisTests <- jmvcore::OptionBool$new(
-                "informedHypothesisTests",
-                informedHypothesisTests,
-                default=FALSE)
-            private$..heterogeneityCorrection <- jmvcore::OptionBool$new(
-                "heterogeneityCorrection",
-                heterogeneityCorrection,
-                default=FALSE)
-            private$..bootstrapCi <- jmvcore::OptionBool$new(
-                "bootstrapCi",
-                bootstrapCi,
-                default=FALSE)
-            private$..bootstrapSamples <- jmvcore::OptionInteger$new(
-                "bootstrapSamples",
-                bootstrapSamples,
+            private$..restrictedBootstrapSamples <- jmvcore::OptionInteger$new(
+                "restrictedBootstrapSamples",
+                restrictedBootstrapSamples,
                 min=100,
                 max=100000,
                 default=1000)
-            private$..postHoc <- jmvcore::OptionBool$new(
-                "postHoc",
-                postHoc,
-                default=FALSE)
-            private$..postHocTukey <- jmvcore::OptionBool$new(
-                "postHocTukey",
-                postHocTukey,
+            private$..restrictedBootstrapCiLevel <- jmvcore::OptionNumber$new(
+                "restrictedBootstrapCiLevel",
+                restrictedBootstrapCiLevel,
+                min=50,
+                max=99.9,
+                default=95)
+            private$..restrictedMarginalMeanTerms <- jmvcore::OptionVariables$new(
+                "restrictedMarginalMeanTerms",
+                restrictedMarginalMeanTerms,
+                suggested=list(
+                    "nominal",
+                    "ordinal"),
+                permitted=list(
+                    "factor"))
+            private$..postHocTerms <- jmvcore::OptionVariables$new(
+                "postHocTerms",
+                postHocTerms,
+                suggested=list(
+                    "nominal",
+                    "ordinal"),
+                permitted=list(
+                    "factor"))
+            private$..postHocTypeStandard <- jmvcore::OptionBool$new(
+                "postHocTypeStandard",
+                postHocTypeStandard,
                 default=TRUE)
-            private$..postHocScheffe <- jmvcore::OptionBool$new(
-                "postHocScheffe",
-                postHocScheffe,
+            private$..postHocTypeStandardBootstrap <- jmvcore::OptionBool$new(
+                "postHocTypeStandardBootstrap",
+                postHocTypeStandardBootstrap,
                 default=FALSE)
-            private$..postHocBonferroni <- jmvcore::OptionBool$new(
-                "postHocBonferroni",
-                postHocBonferroni,
+            private$..postHocTypeStandardBootstrapSamples <- jmvcore::OptionInteger$new(
+                "postHocTypeStandardBootstrapSamples",
+                postHocTypeStandardBootstrapSamples,
+                min=100,
+                max=100000,
+                default=1000)
+            private$..postHocTypeStandardEffectSize <- jmvcore::OptionBool$new(
+                "postHocTypeStandardEffectSize",
+                postHocTypeStandardEffectSize,
                 default=FALSE)
-            private$..postHocHolm <- jmvcore::OptionBool$new(
-                "postHocHolm",
-                postHocHolm,
+            private$..postHocConditionalTable <- jmvcore::OptionBool$new(
+                "postHocConditionalTable",
+                postHocConditionalTable,
                 default=FALSE)
-            private$..postHocSidak <- jmvcore::OptionBool$new(
-                "postHocSidak",
-                postHocSidak,
+            private$..postHocTypeGames <- jmvcore::OptionBool$new(
+                "postHocTypeGames",
+                postHocTypeGames,
                 default=FALSE)
-            private$..postHocGamesHowell <- jmvcore::OptionBool$new(
-                "postHocGamesHowell",
-                postHocGamesHowell,
+            private$..postHocTypeDunnet <- jmvcore::OptionBool$new(
+                "postHocTypeDunnet",
+                postHocTypeDunnet,
                 default=FALSE)
-            private$..postHocDunnett <- jmvcore::OptionBool$new(
-                "postHocDunnett",
-                postHocDunnett,
+            private$..postHocCorrectionTukey <- jmvcore::OptionBool$new(
+                "postHocCorrectionTukey",
+                postHocCorrectionTukey,
+                default=TRUE)
+            private$..postHocCorrectionScheffe <- jmvcore::OptionBool$new(
+                "postHocCorrectionScheffe",
+                postHocCorrectionScheffe,
+                default=FALSE)
+            private$..postHocCorrectionBonferroni <- jmvcore::OptionBool$new(
+                "postHocCorrectionBonferroni",
+                postHocCorrectionBonferroni,
+                default=FALSE)
+            private$..postHocCorrectionHolm <- jmvcore::OptionBool$new(
+                "postHocCorrectionHolm",
+                postHocCorrectionHolm,
+                default=FALSE)
+            private$..postHocCorrectionSidak <- jmvcore::OptionBool$new(
+                "postHocCorrectionSidak",
+                postHocCorrectionSidak,
+                default=FALSE)
+            private$..postHocCorrectionFdr <- jmvcore::OptionBool$new(
+                "postHocCorrectionFdr",
+                postHocCorrectionFdr,
                 default=FALSE)
             private$..postHocCi <- jmvcore::OptionBool$new(
                 "postHocCi",
                 postHocCi,
                 default=TRUE)
-            private$..postHocSignificantFlags <- jmvcore::OptionBool$new(
-                "postHocSignificantFlags",
-                postHocSignificantFlags,
+            private$..postHocCiLevel <- jmvcore::OptionNumber$new(
+                "postHocCiLevel",
+                postHocCiLevel,
+                min=50,
+                max=99.9,
+                default=95)
+            private$..postHocSignificanceFlag <- jmvcore::OptionBool$new(
+                "postHocSignificanceFlag",
+                postHocSignificanceFlag,
+                default=FALSE)
+            private$..postHocLetterTable <- jmvcore::OptionBool$new(
+                "postHocLetterTable",
+                postHocLetterTable,
+                default=FALSE)
+            private$..postHocLetterAlpha <- jmvcore::OptionNumber$new(
+                "postHocLetterAlpha",
+                postHocLetterAlpha,
+                min=0,
+                max=1,
+                default=0.05)
+            private$..descriptivePlotHorizontalAxis <- jmvcore::OptionVariable$new(
+                "descriptivePlotHorizontalAxis",
+                descriptivePlotHorizontalAxis,
+                suggested=list(
+                    "nominal",
+                    "ordinal"),
+                permitted=list(
+                    "factor"))
+            private$..descriptivePlotSeparateLines <- jmvcore::OptionVariable$new(
+                "descriptivePlotSeparateLines",
+                descriptivePlotSeparateLines,
+                suggested=list(
+                    "nominal",
+                    "ordinal"),
+                permitted=list(
+                    "factor"))
+            private$..descriptivePlotSeparatePlot <- jmvcore::OptionVariable$new(
+                "descriptivePlotSeparatePlot",
+                descriptivePlotSeparatePlot,
+                suggested=list(
+                    "nominal",
+                    "ordinal"),
+                permitted=list(
+                    "factor"))
+            private$..descriptivePlotErrorBar <- jmvcore::OptionBool$new(
+                "descriptivePlotErrorBar",
+                descriptivePlotErrorBar,
                 default=TRUE)
-            private$..postHocLetters <- jmvcore::OptionBool$new(
-                "postHocLetters",
-                postHocLetters,
-                default=FALSE)
-            private$..postHocEffectSizes <- jmvcore::OptionBool$new(
-                "postHocEffectSizes",
-                postHocEffectSizes,
-                default=FALSE)
-            private$..postHocBootstrap <- jmvcore::OptionBool$new(
-                "postHocBootstrap",
-                postHocBootstrap,
-                default=FALSE)
-            private$..conditionalComparisons <- jmvcore::OptionBool$new(
-                "conditionalComparisons",
-                conditionalComparisons,
-                default=FALSE)
-            private$..descriptivePlots <- jmvcore::OptionBool$new(
-                "descriptivePlots",
-                descriptivePlots,
-                default=FALSE)
-            private$..descPlotXAxis <- jmvcore::OptionVariable$new(
-                "descPlotXAxis",
-                descPlotXAxis,
-                suggested=list(
-                    "nominal",
-                    "ordinal"),
-                permitted=list(
-                    "factor"))
-            private$..descPlotLines <- jmvcore::OptionVariable$new(
-                "descPlotLines",
-                descPlotLines,
-                suggested=list(
-                    "nominal",
-                    "ordinal"),
-                permitted=list(
-                    "factor"))
-            private$..descPlotSeparate <- jmvcore::OptionVariable$new(
-                "descPlotSeparate",
-                descPlotSeparate,
-                suggested=list(
-                    "nominal",
-                    "ordinal"),
-                permitted=list(
-                    "factor"))
-            private$..descPlotError <- jmvcore::OptionList$new(
-                "descPlotError",
-                descPlotError,
+            private$..descriptivePlotErrorBarType <- jmvcore::OptionList$new(
+                "descriptivePlotErrorBarType",
+                descriptivePlotErrorBarType,
                 options=list(
                     "ci",
                     "se"),
                 default="ci")
-            private$..barPlots <- jmvcore::OptionBool$new(
-                "barPlots",
-                barPlots,
-                default=FALSE)
-            private$..barPlotXAxis <- jmvcore::OptionVariable$new(
-                "barPlotXAxis",
-                barPlotXAxis,
+            private$..descriptivePlotCiLevel <- jmvcore::OptionNumber$new(
+                "descriptivePlotCiLevel",
+                descriptivePlotCiLevel,
+                min=50,
+                max=99.9,
+                default=95)
+            private$..barPlotHorizontalAxis <- jmvcore::OptionVariable$new(
+                "barPlotHorizontalAxis",
+                barPlotHorizontalAxis,
                 suggested=list(
                     "nominal",
                     "ordinal"),
                 permitted=list(
                     "factor"))
-            private$..barPlotSeparate <- jmvcore::OptionVariable$new(
-                "barPlotSeparate",
-                barPlotSeparate,
+            private$..barPlotSeparatePlots <- jmvcore::OptionVariable$new(
+                "barPlotSeparatePlots",
+                barPlotSeparatePlots,
                 suggested=list(
                     "nominal",
                     "ordinal"),
                 permitted=list(
                     "factor"))
-            private$..barPlotError <- jmvcore::OptionList$new(
-                "barPlotError",
-                barPlotError,
+            private$..barPlotErrorBars <- jmvcore::OptionBool$new(
+                "barPlotErrorBars",
+                barPlotErrorBars,
+                default=TRUE)
+            private$..barPlotErrorBarType <- jmvcore::OptionList$new(
+                "barPlotErrorBarType",
+                barPlotErrorBarType,
                 options=list(
                     "ci",
                     "se"),
                 default="ci")
-            private$..barPlotFixZero <- jmvcore::OptionBool$new(
-                "barPlotFixZero",
-                barPlotFixZero,
-                default=FALSE)
-            private$..raincloudPlots <- jmvcore::OptionBool$new(
-                "raincloudPlots",
-                raincloudPlots,
-                default=FALSE)
-            private$..raincloudXAxis <- jmvcore::OptionVariable$new(
-                "raincloudXAxis",
-                raincloudXAxis,
+            private$..barPlotCiInterval <- jmvcore::OptionNumber$new(
+                "barPlotCiInterval",
+                barPlotCiInterval,
+                min=50,
+                max=99.9,
+                default=95)
+            private$..barPlotHorizontalZeroFix <- jmvcore::OptionBool$new(
+                "barPlotHorizontalZeroFix",
+                barPlotHorizontalZeroFix,
+                default=TRUE)
+            private$..rainCloudHorizontalAxis <- jmvcore::OptionVariable$new(
+                "rainCloudHorizontalAxis",
+                rainCloudHorizontalAxis,
                 suggested=list(
                     "nominal",
                     "ordinal"),
                 permitted=list(
                     "factor"))
-            private$..raincloudSeparate <- jmvcore::OptionVariable$new(
-                "raincloudSeparate",
-                raincloudSeparate,
+            private$..rainCloudSeparatePlots <- jmvcore::OptionVariable$new(
+                "rainCloudSeparatePlots",
+                rainCloudSeparatePlots,
                 suggested=list(
                     "nominal",
                     "ordinal"),
                 permitted=list(
                     "factor"))
-            private$..raincloudHorizontal <- jmvcore::OptionBool$new(
-                "raincloudHorizontal",
-                raincloudHorizontal,
-                default=FALSE)
-            private$..marginalMeans <- jmvcore::OptionBool$new(
-                "marginalMeans",
-                marginalMeans,
+            private$..rainCloudHorizontalDisplay <- jmvcore::OptionBool$new(
+                "rainCloudHorizontalDisplay",
+                rainCloudHorizontalDisplay,
                 default=FALSE)
             private$..marginalMeanTerms <- jmvcore::OptionVariables$new(
                 "marginalMeanTerms",
@@ -481,551 +532,408 @@ enhancedAnovaOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Cla
                     "ordinal"),
                 permitted=list(
                     "factor"))
-            private$..marginalMeansTable <- jmvcore::OptionBool$new(
-                "marginalMeansTable",
-                marginalMeansTable,
-                default=TRUE)
-            private$..marginalMeansPairwise <- jmvcore::OptionBool$new(
-                "marginalMeansPairwise",
-                marginalMeansPairwise,
+            private$..marginalMeanBootstrap <- jmvcore::OptionBool$new(
+                "marginalMeanBootstrap",
+                marginalMeanBootstrap,
                 default=FALSE)
-            private$..marginalMeansCi <- jmvcore::OptionBool$new(
-                "marginalMeansCi",
-                marginalMeansCi,
-                default=TRUE)
-            private$..marginalMeansCompareZero <- jmvcore::OptionBool$new(
-                "marginalMeansCompareZero",
-                marginalMeansCompareZero,
+            private$..marginalMeanBootstrapSamples <- jmvcore::OptionInteger$new(
+                "marginalMeanBootstrapSamples",
+                marginalMeanBootstrapSamples,
+                min=100,
+                max=100000,
+                default=1000)
+            private$..marginalMeanComparedToZero <- jmvcore::OptionBool$new(
+                "marginalMeanComparedToZero",
+                marginalMeanComparedToZero,
                 default=FALSE)
-            private$..marginalMeansCiAdjustment <- jmvcore::OptionList$new(
-                "marginalMeansCiAdjustment",
-                marginalMeansCiAdjustment,
+            private$..marginalMeanCiCorrection <- jmvcore::OptionList$new(
+                "marginalMeanCiCorrection",
+                marginalMeanCiCorrection,
                 options=list(
                     "none",
                     "bonferroni",
-                    "holm",
-                    "sidak",
-                    "tukey"),
+                    "sidak"),
                 default="none")
-            private$..simpleEffects <- jmvcore::OptionBool$new(
-                "simpleEffects",
-                simpleEffects,
-                default=FALSE)
-            private$..simpleEffectFactor <- jmvcore::OptionVariable$new(
-                "simpleEffectFactor",
-                simpleEffectFactor,
+            private$..simpleMainEffectFactor <- jmvcore::OptionVariable$new(
+                "simpleMainEffectFactor",
+                simpleMainEffectFactor,
                 suggested=list(
                     "nominal",
                     "ordinal"),
                 permitted=list(
                     "factor"))
-            private$..moderatorFactor1 <- jmvcore::OptionVariable$new(
-                "moderatorFactor1",
-                moderatorFactor1,
+            private$..simpleMainEffectModeratorFactorOne <- jmvcore::OptionVariable$new(
+                "simpleMainEffectModeratorFactorOne",
+                simpleMainEffectModeratorFactorOne,
                 suggested=list(
                     "nominal",
                     "ordinal"),
                 permitted=list(
                     "factor"))
-            private$..moderatorFactor2 <- jmvcore::OptionVariable$new(
-                "moderatorFactor2",
-                moderatorFactor2,
+            private$..simpleMainEffectModeratorFactorTwo <- jmvcore::OptionVariable$new(
+                "simpleMainEffectModeratorFactorTwo",
+                simpleMainEffectModeratorFactorTwo,
                 suggested=list(
                     "nominal",
                     "ordinal"),
                 permitted=list(
                     "factor"))
-            private$..simpleEffectsTables <- jmvcore::OptionBool$new(
-                "simpleEffectsTables",
-                simpleEffectsTables,
+            private$..kruskalWallisFactors <- jmvcore::OptionVariables$new(
+                "kruskalWallisFactors",
+                kruskalWallisFactors,
+                suggested=list(
+                    "nominal",
+                    "ordinal"),
+                permitted=list(
+                    "factor"))
+            private$..kruskalEffectSizeEstimates <- jmvcore::OptionBool$new(
+                "kruskalEffectSizeEstimates",
+                kruskalEffectSizeEstimates,
+                default=FALSE)
+            private$..kruskalEpsilon <- jmvcore::OptionBool$new(
+                "kruskalEpsilon",
+                kruskalEpsilon,
                 default=TRUE)
-            private$..simpleEffectsPostHoc <- jmvcore::OptionBool$new(
-                "simpleEffectsPostHoc",
-                simpleEffectsPostHoc,
+            private$..kruskalEta <- jmvcore::OptionBool$new(
+                "kruskalEta",
+                kruskalEta,
                 default=FALSE)
-            private$..simpleEffectsCi <- jmvcore::OptionBool$new(
-                "simpleEffectsCi",
-                simpleEffectsCi,
-                default=TRUE)
-            private$..simpleEffectsEffectSizes <- jmvcore::OptionBool$new(
-                "simpleEffectsEffectSizes",
-                simpleEffectsEffectSizes,
+            private$..kruskalCiLevel <- jmvcore::OptionNumber$new(
+                "kruskalCiLevel",
+                kruskalCiLevel,
+                min=50,
+                max=99.9,
+                default=95)
+            private$..postHocTypeDunn <- jmvcore::OptionBool$new(
+                "postHocTypeDunn",
+                postHocTypeDunn,
                 default=FALSE)
-            private$..kruskalWallis <- jmvcore::OptionBool$new(
-                "kruskalWallis",
-                kruskalWallis,
+            private$..residualsSavedToData <- jmvcore::OptionBool$new(
+                "residualsSavedToData",
+                residualsSavedToData,
                 default=FALSE)
-            private$..kruskalEpsilonSq <- jmvcore::OptionBool$new(
-                "kruskalEpsilonSq",
-                kruskalEpsilonSq,
-                default=TRUE)
-            private$..kruskalEtaSq <- jmvcore::OptionBool$new(
-                "kruskalEtaSq",
-                kruskalEtaSq,
+            private$..residualsSavedToDataColumn <- jmvcore::OptionString$new(
+                "residualsSavedToDataColumn",
+                residualsSavedToDataColumn,
+                default="residuals")
+            private$..residualsSavedToDataType <- jmvcore::OptionList$new(
+                "residualsSavedToDataType",
+                residualsSavedToDataType,
+                options=list(
+                    "raw",
+                    "standard",
+                    "student"),
+                default="raw")
+            private$..predictionsSavedToData <- jmvcore::OptionBool$new(
+                "predictionsSavedToData",
+                predictionsSavedToData,
                 default=FALSE)
-            private$..kruskalCi <- jmvcore::OptionBool$new(
-                "kruskalCi",
-                kruskalCi,
-                default=FALSE)
-            private$..dunnPostHoc <- jmvcore::OptionBool$new(
-                "dunnPostHoc",
-                dunnPostHoc,
-                default=FALSE)
-            private$..saveResiduals <- jmvcore::OptionBool$new(
-                "saveResiduals",
-                saveResiduals,
-                default=FALSE)
-            private$..saveRawResiduals <- jmvcore::OptionBool$new(
-                "saveRawResiduals",
-                saveRawResiduals,
-                default=TRUE)
-            private$..saveStudentizedResiduals <- jmvcore::OptionBool$new(
-                "saveStudentizedResiduals",
-                saveStudentizedResiduals,
-                default=FALSE)
-            private$..saveStandardizedResiduals <- jmvcore::OptionBool$new(
-                "saveStandardizedResiduals",
-                saveStandardizedResiduals,
-                default=FALSE)
-            private$..residualColumnName <- jmvcore::OptionString$new(
-                "residualColumnName",
-                residualColumnName,
-                default="anova_residuals")
+            private$..predictionsSavedToDataColumn <- jmvcore::OptionString$new(
+                "predictionsSavedToDataColumn",
+                predictionsSavedToDataColumn,
+                default="predictions")
             private$..residsOV <- jmvcore::OptionOutput$new(
                 "residsOV")
-            private$..studentizedResidsOV <- jmvcore::OptionOutput$new(
-                "studentizedResidsOV")
-            private$..standardizedResidsOV <- jmvcore::OptionOutput$new(
-                "standardizedResidsOV")
-            private$..savePredictions <- jmvcore::OptionBool$new(
-                "savePredictions",
-                savePredictions,
-                default=FALSE)
-            private$..predictionColumnName <- jmvcore::OptionString$new(
-                "predictionColumnName",
-                predictionColumnName,
-                default="anova_predictions")
             private$..predictOV <- jmvcore::OptionOutput$new(
                 "predictOV")
-            private$..apaReport <- jmvcore::OptionBool$new(
-                "apaReport",
-                apaReport,
-                default=TRUE)
-            private$..apaTables <- jmvcore::OptionBool$new(
-                "apaTables",
-                apaTables,
-                default=TRUE)
-            private$..copyReadyReport <- jmvcore::OptionBool$new(
-                "copyReadyReport",
-                copyReadyReport,
-                default=FALSE)
-            private$..teachingMode <- jmvcore::OptionBool$new(
-                "teachingMode",
-                teachingMode,
-                default=FALSE)
-            private$..explainStatistics <- jmvcore::OptionBool$new(
-                "explainStatistics",
-                explainStatistics,
-                default=FALSE)
-            private$..effectSizeInterpretation <- jmvcore::OptionBool$new(
-                "effectSizeInterpretation",
-                effectSizeInterpretation,
-                default=FALSE)
-            private$..assumptionGuidance <- jmvcore::OptionBool$new(
-                "assumptionGuidance",
-                assumptionGuidance,
-                default=FALSE)
-            private$..assumptionRemedies <- jmvcore::OptionBool$new(
-                "assumptionRemedies",
-                assumptionRemedies,
-                default=FALSE)
-            private$..publicationMode <- jmvcore::OptionBool$new(
-                "publicationMode",
-                publicationMode,
-                default=FALSE)
-            private$..publicationTables <- jmvcore::OptionBool$new(
-                "publicationTables",
-                publicationTables,
-                default=FALSE)
-            private$..publicationFigures <- jmvcore::OptionBool$new(
-                "publicationFigures",
-                publicationFigures,
-                default=FALSE)
-            private$..exportWord <- jmvcore::OptionBool$new(
-                "exportWord",
-                exportWord,
-                default=FALSE)
-            private$..exportPdf <- jmvcore::OptionBool$new(
-                "exportPdf",
-                exportPdf,
-                default=FALSE)
-            private$..analysisSyntaxExport <- jmvcore::OptionBool$new(
-                "analysisSyntaxExport",
-                analysisSyntaxExport,
-                default=FALSE)
-            private$..rSyntaxExport <- jmvcore::OptionBool$new(
-                "rSyntaxExport",
-                rSyntaxExport,
-                default=FALSE)
-            private$..saveAnalysisConfiguration <- jmvcore::OptionBool$new(
-                "saveAnalysisConfiguration",
-                saveAnalysisConfiguration,
-                default=FALSE)
 
             self$.addOption(private$..dependent)
             self$.addOption(private$..fixedFactors)
-            self$.addOption(private$..covariates)
             self$.addOption(private$..randomFactors)
+            self$.addOption(private$..covariates)
             self$.addOption(private$..wlsWeights)
             self$.addOption(private$..descriptives)
-            self$.addOption(private$..vovkSellke)
-            self$.addOption(private$..omegaSq)
-            self$.addOption(private$..partialOmegaSq)
-            self$.addOption(private$..etaSq)
-            self$.addOption(private$..partialEtaSq)
+            self$.addOption(private$..effectSizeEstimates)
+            self$.addOption(private$..effectSizeOmegaSquared)
+            self$.addOption(private$..effectSizePartialOmegaSquared)
+            self$.addOption(private$..effectSizeEtaSquared)
+            self$.addOption(private$..effectSizePartialEtaSquared)
             self$.addOption(private$..effectSizeCi)
-            self$.addOption(private$..ciWidth)
-            self$.addOption(private$..homogeneityCorrection)
-            self$.addOption(private$..qqPlotResiduals)
-            self$.addOption(private$..residualPlots)
-            self$.addOption(private$..leveragePlots)
-            self$.addOption(private$..influenceDiagnostics)
-            self$.addOption(private$..cooksDistance)
-            self$.addOption(private$..mahalanobisDistance)
-            self$.addOption(private$..customContrasts)
-            self$.addOption(private$..contrastSyntax)
-            self$.addOption(private$..plannedContrasts)
-            self$.addOption(private$..polynomialContrasts)
-            self$.addOption(private$..repeatedContrasts)
-            self$.addOption(private$..helmertContrasts)
-            self$.addOption(private$..differenceContrasts)
-            self$.addOption(private$..deviationContrasts)
+            self$.addOption(private$..effectSizeCiLevel)
+            self$.addOption(private$..vovkSellke)
+            self$.addOption(private$..sumOfSquares)
+            self$.addOption(private$..homogeneityTests)
+            self$.addOption(private$..homogeneityCorrectionNone)
+            self$.addOption(private$..homogeneityCorrectionBrown)
+            self$.addOption(private$..homogeneityCorrectionWelch)
+            self$.addOption(private$..qqPlot)
+            self$.addOption(private$..qqPlotCi)
+            self$.addOption(private$..qqPlotCiLevel)
+            self$.addOption(private$..contrastType)
             self$.addOption(private$..contrastCi)
-            self$.addOption(private$..contrastCohensD)
-            self$.addOption(private$..orderRestricted)
-            self$.addOption(private$..orderRestrictedSyntax)
-            self$.addOption(private$..multipleHypothesisModels)
-            self$.addOption(private$..modelComparison)
-            self$.addOption(private$..referenceModel)
-            self$.addOption(private$..weightRatios)
-            self$.addOption(private$..relativeWeightsMatrix)
-            self$.addOption(private$..compareModelCoefficients)
-            self$.addOption(private$..informedHypothesisTests)
-            self$.addOption(private$..heterogeneityCorrection)
-            self$.addOption(private$..bootstrapCi)
-            self$.addOption(private$..bootstrapSamples)
-            self$.addOption(private$..postHoc)
-            self$.addOption(private$..postHocTukey)
-            self$.addOption(private$..postHocScheffe)
-            self$.addOption(private$..postHocBonferroni)
-            self$.addOption(private$..postHocHolm)
-            self$.addOption(private$..postHocSidak)
-            self$.addOption(private$..postHocGamesHowell)
-            self$.addOption(private$..postHocDunnett)
+            self$.addOption(private$..contrastCiLevel)
+            self$.addOption(private$..contrastEffectSize)
+            self$.addOption(private$..restrictedSyntax)
+            self$.addOption(private$..restrictedInterceptInclusion)
+            self$.addOption(private$..restrictedAvailableCoefficients)
+            self$.addOption(private$..restrictedModelSummaryForAllModels)
+            self$.addOption(private$..restrictedMarginalMeanForAllModels)
+            self$.addOption(private$..restrictedInformedHypothesisTestForAllModels)
+            self$.addOption(private$..restrictedModelComparison)
+            self$.addOption(private$..restrictedModelComparisonWeights)
+            self$.addOption(private$..restrictedModelComparisonReference)
+            self$.addOption(private$..restrictedModelComparisonMatrix)
+            self$.addOption(private$..restrictedModelComparisonCoefficients)
+            self$.addOption(private$..restrictedModelComparisonCoefficientsHighlight)
+            self$.addOption(private$..restrictedHeterogeneityCorrection)
+            self$.addOption(private$..restrictedBootstrap)
+            self$.addOption(private$..restrictedBootstrapSamples)
+            self$.addOption(private$..restrictedBootstrapCiLevel)
+            self$.addOption(private$..restrictedMarginalMeanTerms)
+            self$.addOption(private$..postHocTerms)
+            self$.addOption(private$..postHocTypeStandard)
+            self$.addOption(private$..postHocTypeStandardBootstrap)
+            self$.addOption(private$..postHocTypeStandardBootstrapSamples)
+            self$.addOption(private$..postHocTypeStandardEffectSize)
+            self$.addOption(private$..postHocConditionalTable)
+            self$.addOption(private$..postHocTypeGames)
+            self$.addOption(private$..postHocTypeDunnet)
+            self$.addOption(private$..postHocCorrectionTukey)
+            self$.addOption(private$..postHocCorrectionScheffe)
+            self$.addOption(private$..postHocCorrectionBonferroni)
+            self$.addOption(private$..postHocCorrectionHolm)
+            self$.addOption(private$..postHocCorrectionSidak)
+            self$.addOption(private$..postHocCorrectionFdr)
             self$.addOption(private$..postHocCi)
-            self$.addOption(private$..postHocSignificantFlags)
-            self$.addOption(private$..postHocLetters)
-            self$.addOption(private$..postHocEffectSizes)
-            self$.addOption(private$..postHocBootstrap)
-            self$.addOption(private$..conditionalComparisons)
-            self$.addOption(private$..descriptivePlots)
-            self$.addOption(private$..descPlotXAxis)
-            self$.addOption(private$..descPlotLines)
-            self$.addOption(private$..descPlotSeparate)
-            self$.addOption(private$..descPlotError)
-            self$.addOption(private$..barPlots)
-            self$.addOption(private$..barPlotXAxis)
-            self$.addOption(private$..barPlotSeparate)
-            self$.addOption(private$..barPlotError)
-            self$.addOption(private$..barPlotFixZero)
-            self$.addOption(private$..raincloudPlots)
-            self$.addOption(private$..raincloudXAxis)
-            self$.addOption(private$..raincloudSeparate)
-            self$.addOption(private$..raincloudHorizontal)
-            self$.addOption(private$..marginalMeans)
+            self$.addOption(private$..postHocCiLevel)
+            self$.addOption(private$..postHocSignificanceFlag)
+            self$.addOption(private$..postHocLetterTable)
+            self$.addOption(private$..postHocLetterAlpha)
+            self$.addOption(private$..descriptivePlotHorizontalAxis)
+            self$.addOption(private$..descriptivePlotSeparateLines)
+            self$.addOption(private$..descriptivePlotSeparatePlot)
+            self$.addOption(private$..descriptivePlotErrorBar)
+            self$.addOption(private$..descriptivePlotErrorBarType)
+            self$.addOption(private$..descriptivePlotCiLevel)
+            self$.addOption(private$..barPlotHorizontalAxis)
+            self$.addOption(private$..barPlotSeparatePlots)
+            self$.addOption(private$..barPlotErrorBars)
+            self$.addOption(private$..barPlotErrorBarType)
+            self$.addOption(private$..barPlotCiInterval)
+            self$.addOption(private$..barPlotHorizontalZeroFix)
+            self$.addOption(private$..rainCloudHorizontalAxis)
+            self$.addOption(private$..rainCloudSeparatePlots)
+            self$.addOption(private$..rainCloudHorizontalDisplay)
             self$.addOption(private$..marginalMeanTerms)
-            self$.addOption(private$..marginalMeansTable)
-            self$.addOption(private$..marginalMeansPairwise)
-            self$.addOption(private$..marginalMeansCi)
-            self$.addOption(private$..marginalMeansCompareZero)
-            self$.addOption(private$..marginalMeansCiAdjustment)
-            self$.addOption(private$..simpleEffects)
-            self$.addOption(private$..simpleEffectFactor)
-            self$.addOption(private$..moderatorFactor1)
-            self$.addOption(private$..moderatorFactor2)
-            self$.addOption(private$..simpleEffectsTables)
-            self$.addOption(private$..simpleEffectsPostHoc)
-            self$.addOption(private$..simpleEffectsCi)
-            self$.addOption(private$..simpleEffectsEffectSizes)
-            self$.addOption(private$..kruskalWallis)
-            self$.addOption(private$..kruskalEpsilonSq)
-            self$.addOption(private$..kruskalEtaSq)
-            self$.addOption(private$..kruskalCi)
-            self$.addOption(private$..dunnPostHoc)
-            self$.addOption(private$..saveResiduals)
-            self$.addOption(private$..saveRawResiduals)
-            self$.addOption(private$..saveStudentizedResiduals)
-            self$.addOption(private$..saveStandardizedResiduals)
-            self$.addOption(private$..residualColumnName)
+            self$.addOption(private$..marginalMeanBootstrap)
+            self$.addOption(private$..marginalMeanBootstrapSamples)
+            self$.addOption(private$..marginalMeanComparedToZero)
+            self$.addOption(private$..marginalMeanCiCorrection)
+            self$.addOption(private$..simpleMainEffectFactor)
+            self$.addOption(private$..simpleMainEffectModeratorFactorOne)
+            self$.addOption(private$..simpleMainEffectModeratorFactorTwo)
+            self$.addOption(private$..kruskalWallisFactors)
+            self$.addOption(private$..kruskalEffectSizeEstimates)
+            self$.addOption(private$..kruskalEpsilon)
+            self$.addOption(private$..kruskalEta)
+            self$.addOption(private$..kruskalCiLevel)
+            self$.addOption(private$..postHocTypeDunn)
+            self$.addOption(private$..residualsSavedToData)
+            self$.addOption(private$..residualsSavedToDataColumn)
+            self$.addOption(private$..residualsSavedToDataType)
+            self$.addOption(private$..predictionsSavedToData)
+            self$.addOption(private$..predictionsSavedToDataColumn)
             self$.addOption(private$..residsOV)
-            self$.addOption(private$..studentizedResidsOV)
-            self$.addOption(private$..standardizedResidsOV)
-            self$.addOption(private$..savePredictions)
-            self$.addOption(private$..predictionColumnName)
             self$.addOption(private$..predictOV)
-            self$.addOption(private$..apaReport)
-            self$.addOption(private$..apaTables)
-            self$.addOption(private$..copyReadyReport)
-            self$.addOption(private$..teachingMode)
-            self$.addOption(private$..explainStatistics)
-            self$.addOption(private$..effectSizeInterpretation)
-            self$.addOption(private$..assumptionGuidance)
-            self$.addOption(private$..assumptionRemedies)
-            self$.addOption(private$..publicationMode)
-            self$.addOption(private$..publicationTables)
-            self$.addOption(private$..publicationFigures)
-            self$.addOption(private$..exportWord)
-            self$.addOption(private$..exportPdf)
-            self$.addOption(private$..analysisSyntaxExport)
-            self$.addOption(private$..rSyntaxExport)
-            self$.addOption(private$..saveAnalysisConfiguration)
         }),
     active = list(
         dependent = function() private$..dependent$value,
         fixedFactors = function() private$..fixedFactors$value,
-        covariates = function() private$..covariates$value,
         randomFactors = function() private$..randomFactors$value,
+        covariates = function() private$..covariates$value,
         wlsWeights = function() private$..wlsWeights$value,
         descriptives = function() private$..descriptives$value,
-        vovkSellke = function() private$..vovkSellke$value,
-        omegaSq = function() private$..omegaSq$value,
-        partialOmegaSq = function() private$..partialOmegaSq$value,
-        etaSq = function() private$..etaSq$value,
-        partialEtaSq = function() private$..partialEtaSq$value,
+        effectSizeEstimates = function() private$..effectSizeEstimates$value,
+        effectSizeOmegaSquared = function() private$..effectSizeOmegaSquared$value,
+        effectSizePartialOmegaSquared = function() private$..effectSizePartialOmegaSquared$value,
+        effectSizeEtaSquared = function() private$..effectSizeEtaSquared$value,
+        effectSizePartialEtaSquared = function() private$..effectSizePartialEtaSquared$value,
         effectSizeCi = function() private$..effectSizeCi$value,
-        ciWidth = function() private$..ciWidth$value,
-        homogeneityCorrection = function() private$..homogeneityCorrection$value,
-        qqPlotResiduals = function() private$..qqPlotResiduals$value,
-        residualPlots = function() private$..residualPlots$value,
-        leveragePlots = function() private$..leveragePlots$value,
-        influenceDiagnostics = function() private$..influenceDiagnostics$value,
-        cooksDistance = function() private$..cooksDistance$value,
-        mahalanobisDistance = function() private$..mahalanobisDistance$value,
-        customContrasts = function() private$..customContrasts$value,
-        contrastSyntax = function() private$..contrastSyntax$value,
-        plannedContrasts = function() private$..plannedContrasts$value,
-        polynomialContrasts = function() private$..polynomialContrasts$value,
-        repeatedContrasts = function() private$..repeatedContrasts$value,
-        helmertContrasts = function() private$..helmertContrasts$value,
-        differenceContrasts = function() private$..differenceContrasts$value,
-        deviationContrasts = function() private$..deviationContrasts$value,
+        effectSizeCiLevel = function() private$..effectSizeCiLevel$value,
+        vovkSellke = function() private$..vovkSellke$value,
+        sumOfSquares = function() private$..sumOfSquares$value,
+        homogeneityTests = function() private$..homogeneityTests$value,
+        homogeneityCorrectionNone = function() private$..homogeneityCorrectionNone$value,
+        homogeneityCorrectionBrown = function() private$..homogeneityCorrectionBrown$value,
+        homogeneityCorrectionWelch = function() private$..homogeneityCorrectionWelch$value,
+        qqPlot = function() private$..qqPlot$value,
+        qqPlotCi = function() private$..qqPlotCi$value,
+        qqPlotCiLevel = function() private$..qqPlotCiLevel$value,
+        contrastType = function() private$..contrastType$value,
         contrastCi = function() private$..contrastCi$value,
-        contrastCohensD = function() private$..contrastCohensD$value,
-        orderRestricted = function() private$..orderRestricted$value,
-        orderRestrictedSyntax = function() private$..orderRestrictedSyntax$value,
-        multipleHypothesisModels = function() private$..multipleHypothesisModels$value,
-        modelComparison = function() private$..modelComparison$value,
-        referenceModel = function() private$..referenceModel$value,
-        weightRatios = function() private$..weightRatios$value,
-        relativeWeightsMatrix = function() private$..relativeWeightsMatrix$value,
-        compareModelCoefficients = function() private$..compareModelCoefficients$value,
-        informedHypothesisTests = function() private$..informedHypothesisTests$value,
-        heterogeneityCorrection = function() private$..heterogeneityCorrection$value,
-        bootstrapCi = function() private$..bootstrapCi$value,
-        bootstrapSamples = function() private$..bootstrapSamples$value,
-        postHoc = function() private$..postHoc$value,
-        postHocTukey = function() private$..postHocTukey$value,
-        postHocScheffe = function() private$..postHocScheffe$value,
-        postHocBonferroni = function() private$..postHocBonferroni$value,
-        postHocHolm = function() private$..postHocHolm$value,
-        postHocSidak = function() private$..postHocSidak$value,
-        postHocGamesHowell = function() private$..postHocGamesHowell$value,
-        postHocDunnett = function() private$..postHocDunnett$value,
+        contrastCiLevel = function() private$..contrastCiLevel$value,
+        contrastEffectSize = function() private$..contrastEffectSize$value,
+        restrictedSyntax = function() private$..restrictedSyntax$value,
+        restrictedInterceptInclusion = function() private$..restrictedInterceptInclusion$value,
+        restrictedAvailableCoefficients = function() private$..restrictedAvailableCoefficients$value,
+        restrictedModelSummaryForAllModels = function() private$..restrictedModelSummaryForAllModels$value,
+        restrictedMarginalMeanForAllModels = function() private$..restrictedMarginalMeanForAllModels$value,
+        restrictedInformedHypothesisTestForAllModels = function() private$..restrictedInformedHypothesisTestForAllModels$value,
+        restrictedModelComparison = function() private$..restrictedModelComparison$value,
+        restrictedModelComparisonWeights = function() private$..restrictedModelComparisonWeights$value,
+        restrictedModelComparisonReference = function() private$..restrictedModelComparisonReference$value,
+        restrictedModelComparisonMatrix = function() private$..restrictedModelComparisonMatrix$value,
+        restrictedModelComparisonCoefficients = function() private$..restrictedModelComparisonCoefficients$value,
+        restrictedModelComparisonCoefficientsHighlight = function() private$..restrictedModelComparisonCoefficientsHighlight$value,
+        restrictedHeterogeneityCorrection = function() private$..restrictedHeterogeneityCorrection$value,
+        restrictedBootstrap = function() private$..restrictedBootstrap$value,
+        restrictedBootstrapSamples = function() private$..restrictedBootstrapSamples$value,
+        restrictedBootstrapCiLevel = function() private$..restrictedBootstrapCiLevel$value,
+        restrictedMarginalMeanTerms = function() private$..restrictedMarginalMeanTerms$value,
+        postHocTerms = function() private$..postHocTerms$value,
+        postHocTypeStandard = function() private$..postHocTypeStandard$value,
+        postHocTypeStandardBootstrap = function() private$..postHocTypeStandardBootstrap$value,
+        postHocTypeStandardBootstrapSamples = function() private$..postHocTypeStandardBootstrapSamples$value,
+        postHocTypeStandardEffectSize = function() private$..postHocTypeStandardEffectSize$value,
+        postHocConditionalTable = function() private$..postHocConditionalTable$value,
+        postHocTypeGames = function() private$..postHocTypeGames$value,
+        postHocTypeDunnet = function() private$..postHocTypeDunnet$value,
+        postHocCorrectionTukey = function() private$..postHocCorrectionTukey$value,
+        postHocCorrectionScheffe = function() private$..postHocCorrectionScheffe$value,
+        postHocCorrectionBonferroni = function() private$..postHocCorrectionBonferroni$value,
+        postHocCorrectionHolm = function() private$..postHocCorrectionHolm$value,
+        postHocCorrectionSidak = function() private$..postHocCorrectionSidak$value,
+        postHocCorrectionFdr = function() private$..postHocCorrectionFdr$value,
         postHocCi = function() private$..postHocCi$value,
-        postHocSignificantFlags = function() private$..postHocSignificantFlags$value,
-        postHocLetters = function() private$..postHocLetters$value,
-        postHocEffectSizes = function() private$..postHocEffectSizes$value,
-        postHocBootstrap = function() private$..postHocBootstrap$value,
-        conditionalComparisons = function() private$..conditionalComparisons$value,
-        descriptivePlots = function() private$..descriptivePlots$value,
-        descPlotXAxis = function() private$..descPlotXAxis$value,
-        descPlotLines = function() private$..descPlotLines$value,
-        descPlotSeparate = function() private$..descPlotSeparate$value,
-        descPlotError = function() private$..descPlotError$value,
-        barPlots = function() private$..barPlots$value,
-        barPlotXAxis = function() private$..barPlotXAxis$value,
-        barPlotSeparate = function() private$..barPlotSeparate$value,
-        barPlotError = function() private$..barPlotError$value,
-        barPlotFixZero = function() private$..barPlotFixZero$value,
-        raincloudPlots = function() private$..raincloudPlots$value,
-        raincloudXAxis = function() private$..raincloudXAxis$value,
-        raincloudSeparate = function() private$..raincloudSeparate$value,
-        raincloudHorizontal = function() private$..raincloudHorizontal$value,
-        marginalMeans = function() private$..marginalMeans$value,
+        postHocCiLevel = function() private$..postHocCiLevel$value,
+        postHocSignificanceFlag = function() private$..postHocSignificanceFlag$value,
+        postHocLetterTable = function() private$..postHocLetterTable$value,
+        postHocLetterAlpha = function() private$..postHocLetterAlpha$value,
+        descriptivePlotHorizontalAxis = function() private$..descriptivePlotHorizontalAxis$value,
+        descriptivePlotSeparateLines = function() private$..descriptivePlotSeparateLines$value,
+        descriptivePlotSeparatePlot = function() private$..descriptivePlotSeparatePlot$value,
+        descriptivePlotErrorBar = function() private$..descriptivePlotErrorBar$value,
+        descriptivePlotErrorBarType = function() private$..descriptivePlotErrorBarType$value,
+        descriptivePlotCiLevel = function() private$..descriptivePlotCiLevel$value,
+        barPlotHorizontalAxis = function() private$..barPlotHorizontalAxis$value,
+        barPlotSeparatePlots = function() private$..barPlotSeparatePlots$value,
+        barPlotErrorBars = function() private$..barPlotErrorBars$value,
+        barPlotErrorBarType = function() private$..barPlotErrorBarType$value,
+        barPlotCiInterval = function() private$..barPlotCiInterval$value,
+        barPlotHorizontalZeroFix = function() private$..barPlotHorizontalZeroFix$value,
+        rainCloudHorizontalAxis = function() private$..rainCloudHorizontalAxis$value,
+        rainCloudSeparatePlots = function() private$..rainCloudSeparatePlots$value,
+        rainCloudHorizontalDisplay = function() private$..rainCloudHorizontalDisplay$value,
         marginalMeanTerms = function() private$..marginalMeanTerms$value,
-        marginalMeansTable = function() private$..marginalMeansTable$value,
-        marginalMeansPairwise = function() private$..marginalMeansPairwise$value,
-        marginalMeansCi = function() private$..marginalMeansCi$value,
-        marginalMeansCompareZero = function() private$..marginalMeansCompareZero$value,
-        marginalMeansCiAdjustment = function() private$..marginalMeansCiAdjustment$value,
-        simpleEffects = function() private$..simpleEffects$value,
-        simpleEffectFactor = function() private$..simpleEffectFactor$value,
-        moderatorFactor1 = function() private$..moderatorFactor1$value,
-        moderatorFactor2 = function() private$..moderatorFactor2$value,
-        simpleEffectsTables = function() private$..simpleEffectsTables$value,
-        simpleEffectsPostHoc = function() private$..simpleEffectsPostHoc$value,
-        simpleEffectsCi = function() private$..simpleEffectsCi$value,
-        simpleEffectsEffectSizes = function() private$..simpleEffectsEffectSizes$value,
-        kruskalWallis = function() private$..kruskalWallis$value,
-        kruskalEpsilonSq = function() private$..kruskalEpsilonSq$value,
-        kruskalEtaSq = function() private$..kruskalEtaSq$value,
-        kruskalCi = function() private$..kruskalCi$value,
-        dunnPostHoc = function() private$..dunnPostHoc$value,
-        saveResiduals = function() private$..saveResiduals$value,
-        saveRawResiduals = function() private$..saveRawResiduals$value,
-        saveStudentizedResiduals = function() private$..saveStudentizedResiduals$value,
-        saveStandardizedResiduals = function() private$..saveStandardizedResiduals$value,
-        residualColumnName = function() private$..residualColumnName$value,
+        marginalMeanBootstrap = function() private$..marginalMeanBootstrap$value,
+        marginalMeanBootstrapSamples = function() private$..marginalMeanBootstrapSamples$value,
+        marginalMeanComparedToZero = function() private$..marginalMeanComparedToZero$value,
+        marginalMeanCiCorrection = function() private$..marginalMeanCiCorrection$value,
+        simpleMainEffectFactor = function() private$..simpleMainEffectFactor$value,
+        simpleMainEffectModeratorFactorOne = function() private$..simpleMainEffectModeratorFactorOne$value,
+        simpleMainEffectModeratorFactorTwo = function() private$..simpleMainEffectModeratorFactorTwo$value,
+        kruskalWallisFactors = function() private$..kruskalWallisFactors$value,
+        kruskalEffectSizeEstimates = function() private$..kruskalEffectSizeEstimates$value,
+        kruskalEpsilon = function() private$..kruskalEpsilon$value,
+        kruskalEta = function() private$..kruskalEta$value,
+        kruskalCiLevel = function() private$..kruskalCiLevel$value,
+        postHocTypeDunn = function() private$..postHocTypeDunn$value,
+        residualsSavedToData = function() private$..residualsSavedToData$value,
+        residualsSavedToDataColumn = function() private$..residualsSavedToDataColumn$value,
+        residualsSavedToDataType = function() private$..residualsSavedToDataType$value,
+        predictionsSavedToData = function() private$..predictionsSavedToData$value,
+        predictionsSavedToDataColumn = function() private$..predictionsSavedToDataColumn$value,
         residsOV = function() private$..residsOV$value,
-        studentizedResidsOV = function() private$..studentizedResidsOV$value,
-        standardizedResidsOV = function() private$..standardizedResidsOV$value,
-        savePredictions = function() private$..savePredictions$value,
-        predictionColumnName = function() private$..predictionColumnName$value,
-        predictOV = function() private$..predictOV$value,
-        apaReport = function() private$..apaReport$value,
-        apaTables = function() private$..apaTables$value,
-        copyReadyReport = function() private$..copyReadyReport$value,
-        teachingMode = function() private$..teachingMode$value,
-        explainStatistics = function() private$..explainStatistics$value,
-        effectSizeInterpretation = function() private$..effectSizeInterpretation$value,
-        assumptionGuidance = function() private$..assumptionGuidance$value,
-        assumptionRemedies = function() private$..assumptionRemedies$value,
-        publicationMode = function() private$..publicationMode$value,
-        publicationTables = function() private$..publicationTables$value,
-        publicationFigures = function() private$..publicationFigures$value,
-        exportWord = function() private$..exportWord$value,
-        exportPdf = function() private$..exportPdf$value,
-        analysisSyntaxExport = function() private$..analysisSyntaxExport$value,
-        rSyntaxExport = function() private$..rSyntaxExport$value,
-        saveAnalysisConfiguration = function() private$..saveAnalysisConfiguration$value),
+        predictOV = function() private$..predictOV$value),
     private = list(
         ..dependent = NA,
         ..fixedFactors = NA,
-        ..covariates = NA,
         ..randomFactors = NA,
+        ..covariates = NA,
         ..wlsWeights = NA,
         ..descriptives = NA,
-        ..vovkSellke = NA,
-        ..omegaSq = NA,
-        ..partialOmegaSq = NA,
-        ..etaSq = NA,
-        ..partialEtaSq = NA,
+        ..effectSizeEstimates = NA,
+        ..effectSizeOmegaSquared = NA,
+        ..effectSizePartialOmegaSquared = NA,
+        ..effectSizeEtaSquared = NA,
+        ..effectSizePartialEtaSquared = NA,
         ..effectSizeCi = NA,
-        ..ciWidth = NA,
-        ..homogeneityCorrection = NA,
-        ..qqPlotResiduals = NA,
-        ..residualPlots = NA,
-        ..leveragePlots = NA,
-        ..influenceDiagnostics = NA,
-        ..cooksDistance = NA,
-        ..mahalanobisDistance = NA,
-        ..customContrasts = NA,
-        ..contrastSyntax = NA,
-        ..plannedContrasts = NA,
-        ..polynomialContrasts = NA,
-        ..repeatedContrasts = NA,
-        ..helmertContrasts = NA,
-        ..differenceContrasts = NA,
-        ..deviationContrasts = NA,
+        ..effectSizeCiLevel = NA,
+        ..vovkSellke = NA,
+        ..sumOfSquares = NA,
+        ..homogeneityTests = NA,
+        ..homogeneityCorrectionNone = NA,
+        ..homogeneityCorrectionBrown = NA,
+        ..homogeneityCorrectionWelch = NA,
+        ..qqPlot = NA,
+        ..qqPlotCi = NA,
+        ..qqPlotCiLevel = NA,
+        ..contrastType = NA,
         ..contrastCi = NA,
-        ..contrastCohensD = NA,
-        ..orderRestricted = NA,
-        ..orderRestrictedSyntax = NA,
-        ..multipleHypothesisModels = NA,
-        ..modelComparison = NA,
-        ..referenceModel = NA,
-        ..weightRatios = NA,
-        ..relativeWeightsMatrix = NA,
-        ..compareModelCoefficients = NA,
-        ..informedHypothesisTests = NA,
-        ..heterogeneityCorrection = NA,
-        ..bootstrapCi = NA,
-        ..bootstrapSamples = NA,
-        ..postHoc = NA,
-        ..postHocTukey = NA,
-        ..postHocScheffe = NA,
-        ..postHocBonferroni = NA,
-        ..postHocHolm = NA,
-        ..postHocSidak = NA,
-        ..postHocGamesHowell = NA,
-        ..postHocDunnett = NA,
+        ..contrastCiLevel = NA,
+        ..contrastEffectSize = NA,
+        ..restrictedSyntax = NA,
+        ..restrictedInterceptInclusion = NA,
+        ..restrictedAvailableCoefficients = NA,
+        ..restrictedModelSummaryForAllModels = NA,
+        ..restrictedMarginalMeanForAllModels = NA,
+        ..restrictedInformedHypothesisTestForAllModels = NA,
+        ..restrictedModelComparison = NA,
+        ..restrictedModelComparisonWeights = NA,
+        ..restrictedModelComparisonReference = NA,
+        ..restrictedModelComparisonMatrix = NA,
+        ..restrictedModelComparisonCoefficients = NA,
+        ..restrictedModelComparisonCoefficientsHighlight = NA,
+        ..restrictedHeterogeneityCorrection = NA,
+        ..restrictedBootstrap = NA,
+        ..restrictedBootstrapSamples = NA,
+        ..restrictedBootstrapCiLevel = NA,
+        ..restrictedMarginalMeanTerms = NA,
+        ..postHocTerms = NA,
+        ..postHocTypeStandard = NA,
+        ..postHocTypeStandardBootstrap = NA,
+        ..postHocTypeStandardBootstrapSamples = NA,
+        ..postHocTypeStandardEffectSize = NA,
+        ..postHocConditionalTable = NA,
+        ..postHocTypeGames = NA,
+        ..postHocTypeDunnet = NA,
+        ..postHocCorrectionTukey = NA,
+        ..postHocCorrectionScheffe = NA,
+        ..postHocCorrectionBonferroni = NA,
+        ..postHocCorrectionHolm = NA,
+        ..postHocCorrectionSidak = NA,
+        ..postHocCorrectionFdr = NA,
         ..postHocCi = NA,
-        ..postHocSignificantFlags = NA,
-        ..postHocLetters = NA,
-        ..postHocEffectSizes = NA,
-        ..postHocBootstrap = NA,
-        ..conditionalComparisons = NA,
-        ..descriptivePlots = NA,
-        ..descPlotXAxis = NA,
-        ..descPlotLines = NA,
-        ..descPlotSeparate = NA,
-        ..descPlotError = NA,
-        ..barPlots = NA,
-        ..barPlotXAxis = NA,
-        ..barPlotSeparate = NA,
-        ..barPlotError = NA,
-        ..barPlotFixZero = NA,
-        ..raincloudPlots = NA,
-        ..raincloudXAxis = NA,
-        ..raincloudSeparate = NA,
-        ..raincloudHorizontal = NA,
-        ..marginalMeans = NA,
+        ..postHocCiLevel = NA,
+        ..postHocSignificanceFlag = NA,
+        ..postHocLetterTable = NA,
+        ..postHocLetterAlpha = NA,
+        ..descriptivePlotHorizontalAxis = NA,
+        ..descriptivePlotSeparateLines = NA,
+        ..descriptivePlotSeparatePlot = NA,
+        ..descriptivePlotErrorBar = NA,
+        ..descriptivePlotErrorBarType = NA,
+        ..descriptivePlotCiLevel = NA,
+        ..barPlotHorizontalAxis = NA,
+        ..barPlotSeparatePlots = NA,
+        ..barPlotErrorBars = NA,
+        ..barPlotErrorBarType = NA,
+        ..barPlotCiInterval = NA,
+        ..barPlotHorizontalZeroFix = NA,
+        ..rainCloudHorizontalAxis = NA,
+        ..rainCloudSeparatePlots = NA,
+        ..rainCloudHorizontalDisplay = NA,
         ..marginalMeanTerms = NA,
-        ..marginalMeansTable = NA,
-        ..marginalMeansPairwise = NA,
-        ..marginalMeansCi = NA,
-        ..marginalMeansCompareZero = NA,
-        ..marginalMeansCiAdjustment = NA,
-        ..simpleEffects = NA,
-        ..simpleEffectFactor = NA,
-        ..moderatorFactor1 = NA,
-        ..moderatorFactor2 = NA,
-        ..simpleEffectsTables = NA,
-        ..simpleEffectsPostHoc = NA,
-        ..simpleEffectsCi = NA,
-        ..simpleEffectsEffectSizes = NA,
-        ..kruskalWallis = NA,
-        ..kruskalEpsilonSq = NA,
-        ..kruskalEtaSq = NA,
-        ..kruskalCi = NA,
-        ..dunnPostHoc = NA,
-        ..saveResiduals = NA,
-        ..saveRawResiduals = NA,
-        ..saveStudentizedResiduals = NA,
-        ..saveStandardizedResiduals = NA,
-        ..residualColumnName = NA,
+        ..marginalMeanBootstrap = NA,
+        ..marginalMeanBootstrapSamples = NA,
+        ..marginalMeanComparedToZero = NA,
+        ..marginalMeanCiCorrection = NA,
+        ..simpleMainEffectFactor = NA,
+        ..simpleMainEffectModeratorFactorOne = NA,
+        ..simpleMainEffectModeratorFactorTwo = NA,
+        ..kruskalWallisFactors = NA,
+        ..kruskalEffectSizeEstimates = NA,
+        ..kruskalEpsilon = NA,
+        ..kruskalEta = NA,
+        ..kruskalCiLevel = NA,
+        ..postHocTypeDunn = NA,
+        ..residualsSavedToData = NA,
+        ..residualsSavedToDataColumn = NA,
+        ..residualsSavedToDataType = NA,
+        ..predictionsSavedToData = NA,
+        ..predictionsSavedToDataColumn = NA,
         ..residsOV = NA,
-        ..studentizedResidsOV = NA,
-        ..standardizedResidsOV = NA,
-        ..savePredictions = NA,
-        ..predictionColumnName = NA,
-        ..predictOV = NA,
-        ..apaReport = NA,
-        ..apaTables = NA,
-        ..copyReadyReport = NA,
-        ..teachingMode = NA,
-        ..explainStatistics = NA,
-        ..effectSizeInterpretation = NA,
-        ..assumptionGuidance = NA,
-        ..assumptionRemedies = NA,
-        ..publicationMode = NA,
-        ..publicationTables = NA,
-        ..publicationFigures = NA,
-        ..exportWord = NA,
-        ..exportPdf = NA,
-        ..analysisSyntaxExport = NA,
-        ..rSyntaxExport = NA,
-        ..saveAnalysisConfiguration = NA)
+        ..predictOV = NA)
 )
 
 enhancedAnovaResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
@@ -1049,8 +957,6 @@ enhancedAnovaResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Cla
         raincloudPlot = function() private$.items[["raincloudPlot"]],
         savedColumns = function() private$.items[["savedColumns"]],
         residsOV = function() private$.items[["residsOV"]],
-        studentizedResidsOV = function() private$.items[["studentizedResidsOV"]],
-        standardizedResidsOV = function() private$.items[["standardizedResidsOV"]],
         predictOV = function() private$.items[["predictOV"]],
         apa = function() private$.items[["apa"]],
         teaching = function() private$.items[["teaching"]],
@@ -1096,23 +1002,19 @@ enhancedAnovaResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Cla
             self$add(jmvcore::Html$new(
                 options=options,
                 name="postHocSection",
-                title="Post Hoc Tests",
-                visible="(postHoc)"))
+                title="Post Hoc Tests"))
             self$add(jmvcore::Html$new(
                 options=options,
                 name="marginalMeansSection",
-                title="Estimated Marginal Means",
-                visible="(marginalMeans)"))
+                title="Estimated Marginal Means"))
             self$add(jmvcore::Html$new(
                 options=options,
                 name="simpleEffectsSection",
-                title="Simple Main Effects",
-                visible="(simpleEffects)"))
+                title="Simple Main Effects"))
             self$add(jmvcore::Html$new(
                 options=options,
                 name="nonparametric",
-                title="Nonparametric Alternatives",
-                visible="(kruskalWallis)"))
+                title="Nonparametric Alternatives"))
             self$add(jmvcore::Html$new(
                 options=options,
                 name="plots",
@@ -1121,7 +1023,7 @@ enhancedAnovaResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Cla
                 options=options,
                 name="qqPlot",
                 title="Q-Q Plot of Residuals",
-                visible="(qqPlotResiduals)",
+                visible="(qqPlot)",
                 width=520,
                 height=420,
                 renderFun=".qqPlot"))
@@ -1129,7 +1031,6 @@ enhancedAnovaResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Cla
                 options=options,
                 name="residualPlot",
                 title="Residual Plot",
-                visible="(residualPlots)",
                 width=520,
                 height=420,
                 renderFun=".residualPlot"))
@@ -1137,7 +1038,6 @@ enhancedAnovaResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Cla
                 options=options,
                 name="raincloudPlot",
                 title="Raincloud Plot",
-                visible="(raincloudPlots)",
                 width=640,
                 height=440,
                 renderFun=".raincloudPlot"))
@@ -1158,28 +1058,6 @@ enhancedAnovaResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Cla
                     "covariates")))
             self$add(jmvcore::Output$new(
                 options=options,
-                name="studentizedResidsOV",
-                title="Studentized residuals",
-                varTitle="Studentized residuals",
-                varDescription="Studentized residuals from JASP Enhanced ANOVA",
-                measureType="continuous",
-                clearWith=list(
-                    "dependent",
-                    "fixedFactors",
-                    "covariates")))
-            self$add(jmvcore::Output$new(
-                options=options,
-                name="standardizedResidsOV",
-                title="Standardized residuals",
-                varTitle="Standardized residuals",
-                varDescription="Standardized residuals from JASP Enhanced ANOVA",
-                measureType="continuous",
-                clearWith=list(
-                    "dependent",
-                    "fixedFactors",
-                    "covariates")))
-            self$add(jmvcore::Output$new(
-                options=options,
                 name="predictOV",
                 title="Predicted values",
                 varTitle="Predicted values",
@@ -1192,18 +1070,15 @@ enhancedAnovaResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Cla
             self$add(jmvcore::Html$new(
                 options=options,
                 name="apa",
-                title="APA Reporting",
-                visible="(apaReport)"))
+                title="APA Reporting"))
             self$add(jmvcore::Html$new(
                 options=options,
                 name="teaching",
-                title="Teaching Mode",
-                visible="(teachingMode)"))
+                title="Teaching Mode"))
             self$add(jmvcore::Html$new(
                 options=options,
                 name="publication",
-                title="Publication Mode",
-                visible="(publicationMode)"))
+                title="Publication Mode"))
             self$add(jmvcore::Html$new(
                 options=options,
                 name="reproducibility",
@@ -1236,125 +1111,108 @@ enhancedAnovaBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 
 #' JASP Enhanced ANOVA
 #'
-#' jamovi-native shell for the full JASP classical ANOVA option surface, 
-#' including planned feature parity for corrections, contrasts, post hoc 
-#' tests, plots, marginal means, simple effects, nonparametric alternatives, 
-#' export functions, APA reporting, teaching mode, and reproducibility.
+#' Classical ANOVA matching the JASP ANOVA analysis, including Type III SS, 
+#' corrections, contrasts, post hoc tests, plots, marginal means, simple 
+#' effects, nonparametric alternatives, order-restricted hypotheses, and 
+#' export.
 #' 
 #' @param data .
 #' @param dependent .
 #' @param fixedFactors .
-#' @param covariates .
 #' @param randomFactors .
+#' @param covariates .
 #' @param wlsWeights .
 #' @param descriptives .
-#' @param vovkSellke .
-#' @param omegaSq .
-#' @param partialOmegaSq .
-#' @param etaSq .
-#' @param partialEtaSq .
+#' @param effectSizeEstimates .
+#' @param effectSizeOmegaSquared .
+#' @param effectSizePartialOmegaSquared .
+#' @param effectSizeEtaSquared .
+#' @param effectSizePartialEtaSquared .
 #' @param effectSizeCi .
-#' @param ciWidth .
-#' @param homogeneityCorrection .
-#' @param qqPlotResiduals .
-#' @param residualPlots .
-#' @param leveragePlots .
-#' @param influenceDiagnostics .
-#' @param cooksDistance .
-#' @param mahalanobisDistance .
-#' @param customContrasts .
-#' @param contrastSyntax .
-#' @param plannedContrasts .
-#' @param polynomialContrasts .
-#' @param repeatedContrasts .
-#' @param helmertContrasts .
-#' @param differenceContrasts .
-#' @param deviationContrasts .
+#' @param effectSizeCiLevel .
+#' @param vovkSellke .
+#' @param sumOfSquares .
+#' @param homogeneityTests .
+#' @param homogeneityCorrectionNone .
+#' @param homogeneityCorrectionBrown .
+#' @param homogeneityCorrectionWelch .
+#' @param qqPlot .
+#' @param qqPlotCi .
+#' @param qqPlotCiLevel .
+#' @param contrastType .
 #' @param contrastCi .
-#' @param contrastCohensD .
-#' @param orderRestricted .
-#' @param orderRestrictedSyntax .
-#' @param multipleHypothesisModels .
-#' @param modelComparison .
-#' @param referenceModel .
-#' @param weightRatios .
-#' @param relativeWeightsMatrix .
-#' @param compareModelCoefficients .
-#' @param informedHypothesisTests .
-#' @param heterogeneityCorrection .
-#' @param bootstrapCi .
-#' @param bootstrapSamples .
-#' @param postHoc .
-#' @param postHocTukey .
-#' @param postHocScheffe .
-#' @param postHocBonferroni .
-#' @param postHocHolm .
-#' @param postHocSidak .
-#' @param postHocGamesHowell .
-#' @param postHocDunnett .
+#' @param contrastCiLevel .
+#' @param contrastEffectSize .
+#' @param restrictedSyntax .
+#' @param restrictedInterceptInclusion .
+#' @param restrictedAvailableCoefficients .
+#' @param restrictedModelSummaryForAllModels .
+#' @param restrictedMarginalMeanForAllModels .
+#' @param restrictedInformedHypothesisTestForAllModels .
+#' @param restrictedModelComparison .
+#' @param restrictedModelComparisonWeights .
+#' @param restrictedModelComparisonReference .
+#' @param restrictedModelComparisonMatrix .
+#' @param restrictedModelComparisonCoefficients .
+#' @param restrictedModelComparisonCoefficientsHighlight .
+#' @param restrictedHeterogeneityCorrection .
+#' @param restrictedBootstrap .
+#' @param restrictedBootstrapSamples .
+#' @param restrictedBootstrapCiLevel .
+#' @param restrictedMarginalMeanTerms .
+#' @param postHocTerms .
+#' @param postHocTypeStandard .
+#' @param postHocTypeStandardBootstrap .
+#' @param postHocTypeStandardBootstrapSamples .
+#' @param postHocTypeStandardEffectSize .
+#' @param postHocConditionalTable .
+#' @param postHocTypeGames .
+#' @param postHocTypeDunnet .
+#' @param postHocCorrectionTukey .
+#' @param postHocCorrectionScheffe .
+#' @param postHocCorrectionBonferroni .
+#' @param postHocCorrectionHolm .
+#' @param postHocCorrectionSidak .
+#' @param postHocCorrectionFdr .
 #' @param postHocCi .
-#' @param postHocSignificantFlags .
-#' @param postHocLetters .
-#' @param postHocEffectSizes .
-#' @param postHocBootstrap .
-#' @param conditionalComparisons .
-#' @param descriptivePlots .
-#' @param descPlotXAxis .
-#' @param descPlotLines .
-#' @param descPlotSeparate .
-#' @param descPlotError .
-#' @param barPlots .
-#' @param barPlotXAxis .
-#' @param barPlotSeparate .
-#' @param barPlotError .
-#' @param barPlotFixZero .
-#' @param raincloudPlots .
-#' @param raincloudXAxis .
-#' @param raincloudSeparate .
-#' @param raincloudHorizontal .
-#' @param marginalMeans .
+#' @param postHocCiLevel .
+#' @param postHocSignificanceFlag .
+#' @param postHocLetterTable .
+#' @param postHocLetterAlpha .
+#' @param descriptivePlotHorizontalAxis .
+#' @param descriptivePlotSeparateLines .
+#' @param descriptivePlotSeparatePlot .
+#' @param descriptivePlotErrorBar .
+#' @param descriptivePlotErrorBarType .
+#' @param descriptivePlotCiLevel .
+#' @param barPlotHorizontalAxis .
+#' @param barPlotSeparatePlots .
+#' @param barPlotErrorBars .
+#' @param barPlotErrorBarType .
+#' @param barPlotCiInterval .
+#' @param barPlotHorizontalZeroFix .
+#' @param rainCloudHorizontalAxis .
+#' @param rainCloudSeparatePlots .
+#' @param rainCloudHorizontalDisplay .
 #' @param marginalMeanTerms .
-#' @param marginalMeansTable .
-#' @param marginalMeansPairwise .
-#' @param marginalMeansCi .
-#' @param marginalMeansCompareZero .
-#' @param marginalMeansCiAdjustment .
-#' @param simpleEffects .
-#' @param simpleEffectFactor .
-#' @param moderatorFactor1 .
-#' @param moderatorFactor2 .
-#' @param simpleEffectsTables .
-#' @param simpleEffectsPostHoc .
-#' @param simpleEffectsCi .
-#' @param simpleEffectsEffectSizes .
-#' @param kruskalWallis .
-#' @param kruskalEpsilonSq .
-#' @param kruskalEtaSq .
-#' @param kruskalCi .
-#' @param dunnPostHoc .
-#' @param saveResiduals .
-#' @param saveRawResiduals .
-#' @param saveStudentizedResiduals .
-#' @param saveStandardizedResiduals .
-#' @param residualColumnName .
-#' @param savePredictions .
-#' @param predictionColumnName .
-#' @param apaReport .
-#' @param apaTables .
-#' @param copyReadyReport .
-#' @param teachingMode .
-#' @param explainStatistics .
-#' @param effectSizeInterpretation .
-#' @param assumptionGuidance .
-#' @param assumptionRemedies .
-#' @param publicationMode .
-#' @param publicationTables .
-#' @param publicationFigures .
-#' @param exportWord .
-#' @param exportPdf .
-#' @param analysisSyntaxExport .
-#' @param rSyntaxExport .
-#' @param saveAnalysisConfiguration .
+#' @param marginalMeanBootstrap .
+#' @param marginalMeanBootstrapSamples .
+#' @param marginalMeanComparedToZero .
+#' @param marginalMeanCiCorrection .
+#' @param simpleMainEffectFactor .
+#' @param simpleMainEffectModeratorFactorOne .
+#' @param simpleMainEffectModeratorFactorTwo .
+#' @param kruskalWallisFactors .
+#' @param kruskalEffectSizeEstimates .
+#' @param kruskalEpsilon .
+#' @param kruskalEta .
+#' @param kruskalCiLevel .
+#' @param postHocTypeDunn .
+#' @param residualsSavedToData .
+#' @param residualsSavedToDataColumn .
+#' @param residualsSavedToDataType .
+#' @param predictionsSavedToData .
+#' @param predictionsSavedToDataColumn .
 #' @return A results object containing:
 #' \tabular{llllll}{
 #'   \code{results$status} \tab \tab \tab \tab \tab a html \cr
@@ -1374,8 +1232,6 @@ enhancedAnovaBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #'   \code{results$raincloudPlot} \tab \tab \tab \tab \tab an image \cr
 #'   \code{results$savedColumns} \tab \tab \tab \tab \tab a html \cr
 #'   \code{results$residsOV} \tab \tab \tab \tab \tab an output \cr
-#'   \code{results$studentizedResidsOV} \tab \tab \tab \tab \tab an output \cr
-#'   \code{results$standardizedResidsOV} \tab \tab \tab \tab \tab an output \cr
 #'   \code{results$predictOV} \tab \tab \tab \tab \tab an output \cr
 #'   \code{results$apa} \tab \tab \tab \tab \tab a html \cr
 #'   \code{results$teaching} \tab \tab \tab \tab \tab a html \cr
@@ -1389,285 +1245,260 @@ enhancedAnova <- function(
     data,
     dependent,
     fixedFactors,
-    covariates,
     randomFactors,
+    covariates,
     wlsWeights,
-    descriptives = TRUE,
-    vovkSellke = FALSE,
-    omegaSq = TRUE,
-    partialOmegaSq = FALSE,
-    etaSq = TRUE,
-    partialEtaSq = TRUE,
+    descriptives = FALSE,
+    effectSizeEstimates = FALSE,
+    effectSizeOmegaSquared = TRUE,
+    effectSizePartialOmegaSquared = FALSE,
+    effectSizeEtaSquared = FALSE,
+    effectSizePartialEtaSquared = FALSE,
     effectSizeCi = FALSE,
-    ciWidth = 95,
-    homogeneityCorrection = "none",
-    qqPlotResiduals = FALSE,
-    residualPlots = FALSE,
-    leveragePlots = FALSE,
-    influenceDiagnostics = FALSE,
-    cooksDistance = FALSE,
-    mahalanobisDistance = FALSE,
-    customContrasts = FALSE,
-    contrastSyntax = "",
-    plannedContrasts = FALSE,
-    polynomialContrasts = FALSE,
-    repeatedContrasts = FALSE,
-    helmertContrasts = FALSE,
-    differenceContrasts = FALSE,
-    deviationContrasts = FALSE,
+    effectSizeCiLevel = 95,
+    vovkSellke = FALSE,
+    sumOfSquares = "type3",
+    homogeneityTests = FALSE,
+    homogeneityCorrectionNone = TRUE,
+    homogeneityCorrectionBrown = FALSE,
+    homogeneityCorrectionWelch = FALSE,
+    qqPlot = FALSE,
+    qqPlotCi = FALSE,
+    qqPlotCiLevel = 95,
+    contrastType = "none",
     contrastCi = TRUE,
-    contrastCohensD = FALSE,
-    orderRestricted = FALSE,
-    orderRestrictedSyntax = "",
-    multipleHypothesisModels = FALSE,
-    modelComparison = FALSE,
-    referenceModel = "unconstrained",
-    weightRatios = FALSE,
-    relativeWeightsMatrix = FALSE,
-    compareModelCoefficients = FALSE,
-    informedHypothesisTests = FALSE,
-    heterogeneityCorrection = FALSE,
-    bootstrapCi = FALSE,
-    bootstrapSamples = 1000,
-    postHoc = FALSE,
-    postHocTukey = TRUE,
-    postHocScheffe = FALSE,
-    postHocBonferroni = FALSE,
-    postHocHolm = FALSE,
-    postHocSidak = FALSE,
-    postHocGamesHowell = FALSE,
-    postHocDunnett = FALSE,
+    contrastCiLevel = 95,
+    contrastEffectSize = FALSE,
+    restrictedSyntax = "",
+    restrictedInterceptInclusion = FALSE,
+    restrictedAvailableCoefficients = FALSE,
+    restrictedModelSummaryForAllModels = FALSE,
+    restrictedMarginalMeanForAllModels = FALSE,
+    restrictedInformedHypothesisTestForAllModels = FALSE,
+    restrictedModelComparison = "complement",
+    restrictedModelComparisonWeights = TRUE,
+    restrictedModelComparisonReference = "complement",
+    restrictedModelComparisonMatrix = FALSE,
+    restrictedModelComparisonCoefficients = FALSE,
+    restrictedModelComparisonCoefficientsHighlight = TRUE,
+    restrictedHeterogeneityCorrection = "none",
+    restrictedBootstrap = FALSE,
+    restrictedBootstrapSamples = 1000,
+    restrictedBootstrapCiLevel = 95,
+    restrictedMarginalMeanTerms,
+    postHocTerms,
+    postHocTypeStandard = TRUE,
+    postHocTypeStandardBootstrap = FALSE,
+    postHocTypeStandardBootstrapSamples = 1000,
+    postHocTypeStandardEffectSize = FALSE,
+    postHocConditionalTable = FALSE,
+    postHocTypeGames = FALSE,
+    postHocTypeDunnet = FALSE,
+    postHocCorrectionTukey = TRUE,
+    postHocCorrectionScheffe = FALSE,
+    postHocCorrectionBonferroni = FALSE,
+    postHocCorrectionHolm = FALSE,
+    postHocCorrectionSidak = FALSE,
+    postHocCorrectionFdr = FALSE,
     postHocCi = TRUE,
-    postHocSignificantFlags = TRUE,
-    postHocLetters = FALSE,
-    postHocEffectSizes = FALSE,
-    postHocBootstrap = FALSE,
-    conditionalComparisons = FALSE,
-    descriptivePlots = FALSE,
-    descPlotXAxis,
-    descPlotLines,
-    descPlotSeparate,
-    descPlotError = "ci",
-    barPlots = FALSE,
-    barPlotXAxis,
-    barPlotSeparate,
-    barPlotError = "ci",
-    barPlotFixZero = FALSE,
-    raincloudPlots = FALSE,
-    raincloudXAxis,
-    raincloudSeparate,
-    raincloudHorizontal = FALSE,
-    marginalMeans = FALSE,
+    postHocCiLevel = 95,
+    postHocSignificanceFlag = FALSE,
+    postHocLetterTable = FALSE,
+    postHocLetterAlpha = 0.05,
+    descriptivePlotHorizontalAxis,
+    descriptivePlotSeparateLines,
+    descriptivePlotSeparatePlot,
+    descriptivePlotErrorBar = TRUE,
+    descriptivePlotErrorBarType = "ci",
+    descriptivePlotCiLevel = 95,
+    barPlotHorizontalAxis,
+    barPlotSeparatePlots,
+    barPlotErrorBars = TRUE,
+    barPlotErrorBarType = "ci",
+    barPlotCiInterval = 95,
+    barPlotHorizontalZeroFix = TRUE,
+    rainCloudHorizontalAxis,
+    rainCloudSeparatePlots,
+    rainCloudHorizontalDisplay = FALSE,
     marginalMeanTerms,
-    marginalMeansTable = TRUE,
-    marginalMeansPairwise = FALSE,
-    marginalMeansCi = TRUE,
-    marginalMeansCompareZero = FALSE,
-    marginalMeansCiAdjustment = "none",
-    simpleEffects = FALSE,
-    simpleEffectFactor,
-    moderatorFactor1,
-    moderatorFactor2,
-    simpleEffectsTables = TRUE,
-    simpleEffectsPostHoc = FALSE,
-    simpleEffectsCi = TRUE,
-    simpleEffectsEffectSizes = FALSE,
-    kruskalWallis = FALSE,
-    kruskalEpsilonSq = TRUE,
-    kruskalEtaSq = FALSE,
-    kruskalCi = FALSE,
-    dunnPostHoc = FALSE,
-    saveResiduals = FALSE,
-    saveRawResiduals = TRUE,
-    saveStudentizedResiduals = FALSE,
-    saveStandardizedResiduals = FALSE,
-    residualColumnName = "anova_residuals",
-    savePredictions = FALSE,
-    predictionColumnName = "anova_predictions",
-    apaReport = TRUE,
-    apaTables = TRUE,
-    copyReadyReport = FALSE,
-    teachingMode = FALSE,
-    explainStatistics = FALSE,
-    effectSizeInterpretation = FALSE,
-    assumptionGuidance = FALSE,
-    assumptionRemedies = FALSE,
-    publicationMode = FALSE,
-    publicationTables = FALSE,
-    publicationFigures = FALSE,
-    exportWord = FALSE,
-    exportPdf = FALSE,
-    analysisSyntaxExport = FALSE,
-    rSyntaxExport = FALSE,
-    saveAnalysisConfiguration = FALSE) {
+    marginalMeanBootstrap = FALSE,
+    marginalMeanBootstrapSamples = 1000,
+    marginalMeanComparedToZero = FALSE,
+    marginalMeanCiCorrection = "none",
+    simpleMainEffectFactor,
+    simpleMainEffectModeratorFactorOne,
+    simpleMainEffectModeratorFactorTwo,
+    kruskalWallisFactors,
+    kruskalEffectSizeEstimates = FALSE,
+    kruskalEpsilon = TRUE,
+    kruskalEta = FALSE,
+    kruskalCiLevel = 95,
+    postHocTypeDunn = FALSE,
+    residualsSavedToData = FALSE,
+    residualsSavedToDataColumn = "residuals",
+    residualsSavedToDataType = "raw",
+    predictionsSavedToData = FALSE,
+    predictionsSavedToDataColumn = "predictions") {
 
     if ( ! requireNamespace("jmvcore", quietly=TRUE))
         stop("enhancedAnova requires jmvcore to be installed (restart may be required)")
 
     if ( ! missing(dependent)) dependent <- jmvcore::resolveQuo(jmvcore::enquo(dependent))
     if ( ! missing(fixedFactors)) fixedFactors <- jmvcore::resolveQuo(jmvcore::enquo(fixedFactors))
-    if ( ! missing(covariates)) covariates <- jmvcore::resolveQuo(jmvcore::enquo(covariates))
     if ( ! missing(randomFactors)) randomFactors <- jmvcore::resolveQuo(jmvcore::enquo(randomFactors))
+    if ( ! missing(covariates)) covariates <- jmvcore::resolveQuo(jmvcore::enquo(covariates))
     if ( ! missing(wlsWeights)) wlsWeights <- jmvcore::resolveQuo(jmvcore::enquo(wlsWeights))
-    if ( ! missing(descPlotXAxis)) descPlotXAxis <- jmvcore::resolveQuo(jmvcore::enquo(descPlotXAxis))
-    if ( ! missing(descPlotLines)) descPlotLines <- jmvcore::resolveQuo(jmvcore::enquo(descPlotLines))
-    if ( ! missing(descPlotSeparate)) descPlotSeparate <- jmvcore::resolveQuo(jmvcore::enquo(descPlotSeparate))
-    if ( ! missing(barPlotXAxis)) barPlotXAxis <- jmvcore::resolveQuo(jmvcore::enquo(barPlotXAxis))
-    if ( ! missing(barPlotSeparate)) barPlotSeparate <- jmvcore::resolveQuo(jmvcore::enquo(barPlotSeparate))
-    if ( ! missing(raincloudXAxis)) raincloudXAxis <- jmvcore::resolveQuo(jmvcore::enquo(raincloudXAxis))
-    if ( ! missing(raincloudSeparate)) raincloudSeparate <- jmvcore::resolveQuo(jmvcore::enquo(raincloudSeparate))
+    if ( ! missing(restrictedMarginalMeanTerms)) restrictedMarginalMeanTerms <- jmvcore::resolveQuo(jmvcore::enquo(restrictedMarginalMeanTerms))
+    if ( ! missing(postHocTerms)) postHocTerms <- jmvcore::resolveQuo(jmvcore::enquo(postHocTerms))
+    if ( ! missing(descriptivePlotHorizontalAxis)) descriptivePlotHorizontalAxis <- jmvcore::resolveQuo(jmvcore::enquo(descriptivePlotHorizontalAxis))
+    if ( ! missing(descriptivePlotSeparateLines)) descriptivePlotSeparateLines <- jmvcore::resolveQuo(jmvcore::enquo(descriptivePlotSeparateLines))
+    if ( ! missing(descriptivePlotSeparatePlot)) descriptivePlotSeparatePlot <- jmvcore::resolveQuo(jmvcore::enquo(descriptivePlotSeparatePlot))
+    if ( ! missing(barPlotHorizontalAxis)) barPlotHorizontalAxis <- jmvcore::resolveQuo(jmvcore::enquo(barPlotHorizontalAxis))
+    if ( ! missing(barPlotSeparatePlots)) barPlotSeparatePlots <- jmvcore::resolveQuo(jmvcore::enquo(barPlotSeparatePlots))
+    if ( ! missing(rainCloudHorizontalAxis)) rainCloudHorizontalAxis <- jmvcore::resolveQuo(jmvcore::enquo(rainCloudHorizontalAxis))
+    if ( ! missing(rainCloudSeparatePlots)) rainCloudSeparatePlots <- jmvcore::resolveQuo(jmvcore::enquo(rainCloudSeparatePlots))
     if ( ! missing(marginalMeanTerms)) marginalMeanTerms <- jmvcore::resolveQuo(jmvcore::enquo(marginalMeanTerms))
-    if ( ! missing(simpleEffectFactor)) simpleEffectFactor <- jmvcore::resolveQuo(jmvcore::enquo(simpleEffectFactor))
-    if ( ! missing(moderatorFactor1)) moderatorFactor1 <- jmvcore::resolveQuo(jmvcore::enquo(moderatorFactor1))
-    if ( ! missing(moderatorFactor2)) moderatorFactor2 <- jmvcore::resolveQuo(jmvcore::enquo(moderatorFactor2))
+    if ( ! missing(simpleMainEffectFactor)) simpleMainEffectFactor <- jmvcore::resolveQuo(jmvcore::enquo(simpleMainEffectFactor))
+    if ( ! missing(simpleMainEffectModeratorFactorOne)) simpleMainEffectModeratorFactorOne <- jmvcore::resolveQuo(jmvcore::enquo(simpleMainEffectModeratorFactorOne))
+    if ( ! missing(simpleMainEffectModeratorFactorTwo)) simpleMainEffectModeratorFactorTwo <- jmvcore::resolveQuo(jmvcore::enquo(simpleMainEffectModeratorFactorTwo))
+    if ( ! missing(kruskalWallisFactors)) kruskalWallisFactors <- jmvcore::resolveQuo(jmvcore::enquo(kruskalWallisFactors))
     if (missing(data))
         data <- jmvcore::marshalData(
             parent.frame(),
             `if`( ! missing(dependent), dependent, NULL),
             `if`( ! missing(fixedFactors), fixedFactors, NULL),
-            `if`( ! missing(covariates), covariates, NULL),
             `if`( ! missing(randomFactors), randomFactors, NULL),
+            `if`( ! missing(covariates), covariates, NULL),
             `if`( ! missing(wlsWeights), wlsWeights, NULL),
-            `if`( ! missing(descPlotXAxis), descPlotXAxis, NULL),
-            `if`( ! missing(descPlotLines), descPlotLines, NULL),
-            `if`( ! missing(descPlotSeparate), descPlotSeparate, NULL),
-            `if`( ! missing(barPlotXAxis), barPlotXAxis, NULL),
-            `if`( ! missing(barPlotSeparate), barPlotSeparate, NULL),
-            `if`( ! missing(raincloudXAxis), raincloudXAxis, NULL),
-            `if`( ! missing(raincloudSeparate), raincloudSeparate, NULL),
+            `if`( ! missing(restrictedMarginalMeanTerms), restrictedMarginalMeanTerms, NULL),
+            `if`( ! missing(postHocTerms), postHocTerms, NULL),
+            `if`( ! missing(descriptivePlotHorizontalAxis), descriptivePlotHorizontalAxis, NULL),
+            `if`( ! missing(descriptivePlotSeparateLines), descriptivePlotSeparateLines, NULL),
+            `if`( ! missing(descriptivePlotSeparatePlot), descriptivePlotSeparatePlot, NULL),
+            `if`( ! missing(barPlotHorizontalAxis), barPlotHorizontalAxis, NULL),
+            `if`( ! missing(barPlotSeparatePlots), barPlotSeparatePlots, NULL),
+            `if`( ! missing(rainCloudHorizontalAxis), rainCloudHorizontalAxis, NULL),
+            `if`( ! missing(rainCloudSeparatePlots), rainCloudSeparatePlots, NULL),
             `if`( ! missing(marginalMeanTerms), marginalMeanTerms, NULL),
-            `if`( ! missing(simpleEffectFactor), simpleEffectFactor, NULL),
-            `if`( ! missing(moderatorFactor1), moderatorFactor1, NULL),
-            `if`( ! missing(moderatorFactor2), moderatorFactor2, NULL))
+            `if`( ! missing(simpleMainEffectFactor), simpleMainEffectFactor, NULL),
+            `if`( ! missing(simpleMainEffectModeratorFactorOne), simpleMainEffectModeratorFactorOne, NULL),
+            `if`( ! missing(simpleMainEffectModeratorFactorTwo), simpleMainEffectModeratorFactorTwo, NULL),
+            `if`( ! missing(kruskalWallisFactors), kruskalWallisFactors, NULL))
 
     for (v in fixedFactors) if (v %in% names(data)) data[[v]] <- as.factor(data[[v]])
     for (v in randomFactors) if (v %in% names(data)) data[[v]] <- as.factor(data[[v]])
-    for (v in descPlotXAxis) if (v %in% names(data)) data[[v]] <- as.factor(data[[v]])
-    for (v in descPlotLines) if (v %in% names(data)) data[[v]] <- as.factor(data[[v]])
-    for (v in descPlotSeparate) if (v %in% names(data)) data[[v]] <- as.factor(data[[v]])
-    for (v in barPlotXAxis) if (v %in% names(data)) data[[v]] <- as.factor(data[[v]])
-    for (v in barPlotSeparate) if (v %in% names(data)) data[[v]] <- as.factor(data[[v]])
-    for (v in raincloudXAxis) if (v %in% names(data)) data[[v]] <- as.factor(data[[v]])
-    for (v in raincloudSeparate) if (v %in% names(data)) data[[v]] <- as.factor(data[[v]])
+    for (v in restrictedMarginalMeanTerms) if (v %in% names(data)) data[[v]] <- as.factor(data[[v]])
+    for (v in postHocTerms) if (v %in% names(data)) data[[v]] <- as.factor(data[[v]])
+    for (v in descriptivePlotHorizontalAxis) if (v %in% names(data)) data[[v]] <- as.factor(data[[v]])
+    for (v in descriptivePlotSeparateLines) if (v %in% names(data)) data[[v]] <- as.factor(data[[v]])
+    for (v in descriptivePlotSeparatePlot) if (v %in% names(data)) data[[v]] <- as.factor(data[[v]])
+    for (v in barPlotHorizontalAxis) if (v %in% names(data)) data[[v]] <- as.factor(data[[v]])
+    for (v in barPlotSeparatePlots) if (v %in% names(data)) data[[v]] <- as.factor(data[[v]])
+    for (v in rainCloudHorizontalAxis) if (v %in% names(data)) data[[v]] <- as.factor(data[[v]])
+    for (v in rainCloudSeparatePlots) if (v %in% names(data)) data[[v]] <- as.factor(data[[v]])
     for (v in marginalMeanTerms) if (v %in% names(data)) data[[v]] <- as.factor(data[[v]])
-    for (v in simpleEffectFactor) if (v %in% names(data)) data[[v]] <- as.factor(data[[v]])
-    for (v in moderatorFactor1) if (v %in% names(data)) data[[v]] <- as.factor(data[[v]])
-    for (v in moderatorFactor2) if (v %in% names(data)) data[[v]] <- as.factor(data[[v]])
+    for (v in simpleMainEffectFactor) if (v %in% names(data)) data[[v]] <- as.factor(data[[v]])
+    for (v in simpleMainEffectModeratorFactorOne) if (v %in% names(data)) data[[v]] <- as.factor(data[[v]])
+    for (v in simpleMainEffectModeratorFactorTwo) if (v %in% names(data)) data[[v]] <- as.factor(data[[v]])
+    for (v in kruskalWallisFactors) if (v %in% names(data)) data[[v]] <- as.factor(data[[v]])
 
     options <- enhancedAnovaOptions$new(
         dependent = dependent,
         fixedFactors = fixedFactors,
-        covariates = covariates,
         randomFactors = randomFactors,
+        covariates = covariates,
         wlsWeights = wlsWeights,
         descriptives = descriptives,
-        vovkSellke = vovkSellke,
-        omegaSq = omegaSq,
-        partialOmegaSq = partialOmegaSq,
-        etaSq = etaSq,
-        partialEtaSq = partialEtaSq,
+        effectSizeEstimates = effectSizeEstimates,
+        effectSizeOmegaSquared = effectSizeOmegaSquared,
+        effectSizePartialOmegaSquared = effectSizePartialOmegaSquared,
+        effectSizeEtaSquared = effectSizeEtaSquared,
+        effectSizePartialEtaSquared = effectSizePartialEtaSquared,
         effectSizeCi = effectSizeCi,
-        ciWidth = ciWidth,
-        homogeneityCorrection = homogeneityCorrection,
-        qqPlotResiduals = qqPlotResiduals,
-        residualPlots = residualPlots,
-        leveragePlots = leveragePlots,
-        influenceDiagnostics = influenceDiagnostics,
-        cooksDistance = cooksDistance,
-        mahalanobisDistance = mahalanobisDistance,
-        customContrasts = customContrasts,
-        contrastSyntax = contrastSyntax,
-        plannedContrasts = plannedContrasts,
-        polynomialContrasts = polynomialContrasts,
-        repeatedContrasts = repeatedContrasts,
-        helmertContrasts = helmertContrasts,
-        differenceContrasts = differenceContrasts,
-        deviationContrasts = deviationContrasts,
+        effectSizeCiLevel = effectSizeCiLevel,
+        vovkSellke = vovkSellke,
+        sumOfSquares = sumOfSquares,
+        homogeneityTests = homogeneityTests,
+        homogeneityCorrectionNone = homogeneityCorrectionNone,
+        homogeneityCorrectionBrown = homogeneityCorrectionBrown,
+        homogeneityCorrectionWelch = homogeneityCorrectionWelch,
+        qqPlot = qqPlot,
+        qqPlotCi = qqPlotCi,
+        qqPlotCiLevel = qqPlotCiLevel,
+        contrastType = contrastType,
         contrastCi = contrastCi,
-        contrastCohensD = contrastCohensD,
-        orderRestricted = orderRestricted,
-        orderRestrictedSyntax = orderRestrictedSyntax,
-        multipleHypothesisModels = multipleHypothesisModels,
-        modelComparison = modelComparison,
-        referenceModel = referenceModel,
-        weightRatios = weightRatios,
-        relativeWeightsMatrix = relativeWeightsMatrix,
-        compareModelCoefficients = compareModelCoefficients,
-        informedHypothesisTests = informedHypothesisTests,
-        heterogeneityCorrection = heterogeneityCorrection,
-        bootstrapCi = bootstrapCi,
-        bootstrapSamples = bootstrapSamples,
-        postHoc = postHoc,
-        postHocTukey = postHocTukey,
-        postHocScheffe = postHocScheffe,
-        postHocBonferroni = postHocBonferroni,
-        postHocHolm = postHocHolm,
-        postHocSidak = postHocSidak,
-        postHocGamesHowell = postHocGamesHowell,
-        postHocDunnett = postHocDunnett,
+        contrastCiLevel = contrastCiLevel,
+        contrastEffectSize = contrastEffectSize,
+        restrictedSyntax = restrictedSyntax,
+        restrictedInterceptInclusion = restrictedInterceptInclusion,
+        restrictedAvailableCoefficients = restrictedAvailableCoefficients,
+        restrictedModelSummaryForAllModels = restrictedModelSummaryForAllModels,
+        restrictedMarginalMeanForAllModels = restrictedMarginalMeanForAllModels,
+        restrictedInformedHypothesisTestForAllModels = restrictedInformedHypothesisTestForAllModels,
+        restrictedModelComparison = restrictedModelComparison,
+        restrictedModelComparisonWeights = restrictedModelComparisonWeights,
+        restrictedModelComparisonReference = restrictedModelComparisonReference,
+        restrictedModelComparisonMatrix = restrictedModelComparisonMatrix,
+        restrictedModelComparisonCoefficients = restrictedModelComparisonCoefficients,
+        restrictedModelComparisonCoefficientsHighlight = restrictedModelComparisonCoefficientsHighlight,
+        restrictedHeterogeneityCorrection = restrictedHeterogeneityCorrection,
+        restrictedBootstrap = restrictedBootstrap,
+        restrictedBootstrapSamples = restrictedBootstrapSamples,
+        restrictedBootstrapCiLevel = restrictedBootstrapCiLevel,
+        restrictedMarginalMeanTerms = restrictedMarginalMeanTerms,
+        postHocTerms = postHocTerms,
+        postHocTypeStandard = postHocTypeStandard,
+        postHocTypeStandardBootstrap = postHocTypeStandardBootstrap,
+        postHocTypeStandardBootstrapSamples = postHocTypeStandardBootstrapSamples,
+        postHocTypeStandardEffectSize = postHocTypeStandardEffectSize,
+        postHocConditionalTable = postHocConditionalTable,
+        postHocTypeGames = postHocTypeGames,
+        postHocTypeDunnet = postHocTypeDunnet,
+        postHocCorrectionTukey = postHocCorrectionTukey,
+        postHocCorrectionScheffe = postHocCorrectionScheffe,
+        postHocCorrectionBonferroni = postHocCorrectionBonferroni,
+        postHocCorrectionHolm = postHocCorrectionHolm,
+        postHocCorrectionSidak = postHocCorrectionSidak,
+        postHocCorrectionFdr = postHocCorrectionFdr,
         postHocCi = postHocCi,
-        postHocSignificantFlags = postHocSignificantFlags,
-        postHocLetters = postHocLetters,
-        postHocEffectSizes = postHocEffectSizes,
-        postHocBootstrap = postHocBootstrap,
-        conditionalComparisons = conditionalComparisons,
-        descriptivePlots = descriptivePlots,
-        descPlotXAxis = descPlotXAxis,
-        descPlotLines = descPlotLines,
-        descPlotSeparate = descPlotSeparate,
-        descPlotError = descPlotError,
-        barPlots = barPlots,
-        barPlotXAxis = barPlotXAxis,
-        barPlotSeparate = barPlotSeparate,
-        barPlotError = barPlotError,
-        barPlotFixZero = barPlotFixZero,
-        raincloudPlots = raincloudPlots,
-        raincloudXAxis = raincloudXAxis,
-        raincloudSeparate = raincloudSeparate,
-        raincloudHorizontal = raincloudHorizontal,
-        marginalMeans = marginalMeans,
+        postHocCiLevel = postHocCiLevel,
+        postHocSignificanceFlag = postHocSignificanceFlag,
+        postHocLetterTable = postHocLetterTable,
+        postHocLetterAlpha = postHocLetterAlpha,
+        descriptivePlotHorizontalAxis = descriptivePlotHorizontalAxis,
+        descriptivePlotSeparateLines = descriptivePlotSeparateLines,
+        descriptivePlotSeparatePlot = descriptivePlotSeparatePlot,
+        descriptivePlotErrorBar = descriptivePlotErrorBar,
+        descriptivePlotErrorBarType = descriptivePlotErrorBarType,
+        descriptivePlotCiLevel = descriptivePlotCiLevel,
+        barPlotHorizontalAxis = barPlotHorizontalAxis,
+        barPlotSeparatePlots = barPlotSeparatePlots,
+        barPlotErrorBars = barPlotErrorBars,
+        barPlotErrorBarType = barPlotErrorBarType,
+        barPlotCiInterval = barPlotCiInterval,
+        barPlotHorizontalZeroFix = barPlotHorizontalZeroFix,
+        rainCloudHorizontalAxis = rainCloudHorizontalAxis,
+        rainCloudSeparatePlots = rainCloudSeparatePlots,
+        rainCloudHorizontalDisplay = rainCloudHorizontalDisplay,
         marginalMeanTerms = marginalMeanTerms,
-        marginalMeansTable = marginalMeansTable,
-        marginalMeansPairwise = marginalMeansPairwise,
-        marginalMeansCi = marginalMeansCi,
-        marginalMeansCompareZero = marginalMeansCompareZero,
-        marginalMeansCiAdjustment = marginalMeansCiAdjustment,
-        simpleEffects = simpleEffects,
-        simpleEffectFactor = simpleEffectFactor,
-        moderatorFactor1 = moderatorFactor1,
-        moderatorFactor2 = moderatorFactor2,
-        simpleEffectsTables = simpleEffectsTables,
-        simpleEffectsPostHoc = simpleEffectsPostHoc,
-        simpleEffectsCi = simpleEffectsCi,
-        simpleEffectsEffectSizes = simpleEffectsEffectSizes,
-        kruskalWallis = kruskalWallis,
-        kruskalEpsilonSq = kruskalEpsilonSq,
-        kruskalEtaSq = kruskalEtaSq,
-        kruskalCi = kruskalCi,
-        dunnPostHoc = dunnPostHoc,
-        saveResiduals = saveResiduals,
-        saveRawResiduals = saveRawResiduals,
-        saveStudentizedResiduals = saveStudentizedResiduals,
-        saveStandardizedResiduals = saveStandardizedResiduals,
-        residualColumnName = residualColumnName,
-        savePredictions = savePredictions,
-        predictionColumnName = predictionColumnName,
-        apaReport = apaReport,
-        apaTables = apaTables,
-        copyReadyReport = copyReadyReport,
-        teachingMode = teachingMode,
-        explainStatistics = explainStatistics,
-        effectSizeInterpretation = effectSizeInterpretation,
-        assumptionGuidance = assumptionGuidance,
-        assumptionRemedies = assumptionRemedies,
-        publicationMode = publicationMode,
-        publicationTables = publicationTables,
-        publicationFigures = publicationFigures,
-        exportWord = exportWord,
-        exportPdf = exportPdf,
-        analysisSyntaxExport = analysisSyntaxExport,
-        rSyntaxExport = rSyntaxExport,
-        saveAnalysisConfiguration = saveAnalysisConfiguration)
+        marginalMeanBootstrap = marginalMeanBootstrap,
+        marginalMeanBootstrapSamples = marginalMeanBootstrapSamples,
+        marginalMeanComparedToZero = marginalMeanComparedToZero,
+        marginalMeanCiCorrection = marginalMeanCiCorrection,
+        simpleMainEffectFactor = simpleMainEffectFactor,
+        simpleMainEffectModeratorFactorOne = simpleMainEffectModeratorFactorOne,
+        simpleMainEffectModeratorFactorTwo = simpleMainEffectModeratorFactorTwo,
+        kruskalWallisFactors = kruskalWallisFactors,
+        kruskalEffectSizeEstimates = kruskalEffectSizeEstimates,
+        kruskalEpsilon = kruskalEpsilon,
+        kruskalEta = kruskalEta,
+        kruskalCiLevel = kruskalCiLevel,
+        postHocTypeDunn = postHocTypeDunn,
+        residualsSavedToData = residualsSavedToData,
+        residualsSavedToDataColumn = residualsSavedToDataColumn,
+        residualsSavedToDataType = residualsSavedToDataType,
+        predictionsSavedToData = predictionsSavedToData,
+        predictionsSavedToDataColumn = predictionsSavedToDataColumn)
 
     analysis <- enhancedAnovaClass$new(
         options = options,

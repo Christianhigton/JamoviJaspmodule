@@ -1,4 +1,4 @@
-#' @importFrom jmvcore .
+﻿#' @importFrom jmvcore .
 enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = TRUE)) R6::R6Class(
     "enhancedRepeatedMeasuresAnovaClass",
     inherit = enhancedRepeatedMeasuresAnovaBase,
@@ -7,10 +7,10 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
         .run = function() {
             self$results$about$setContent(.je_about_html("https://github.com/jasp-stats/jaspAnova"))
 
-            cells    <- .je_chr_vec(self$options$repeatedMeasures)
-            between  <- .je_chr_vec(self$options$betweenFactors)
+            cells    <- .je_chr_vec(self$options$repeatedMeasuresCells)
+            between  <- .je_chr_vec(self$options$betweenSubjectFactors)
             covs     <- .je_chr_vec(self$options$covariates)
-            grouping <- .je_chr(self$options$groupingFactor)
+            grouping <- .je_chr(self$options$friedmanBetweenFactor)
 
             if (length(cells) < 2) {
                 self$results$status$setContent(
@@ -147,11 +147,9 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
             )
 
             private$.plotState <- list(long = long, lm_fit = rm_fit$lm_fit)
-            if (isTRUE(self$options$qqPlotResiduals))
+            if (isTRUE(self$options$qqPlot))
                 self$results$qqPlot$setState(private$.plotState)
-            if (isTRUE(self$options$residualPlots))
-                self$results$residualPlot$setState(private$.plotState)
-            if (isTRUE(self$options$raincloudPlots))
+            if (nzchar(as.character(self$options$rainCloudHorizontalAxis %||% "")))
                 self$results$raincloudPlot$setState(private$.plotState)
 
             private$.populateOutputs(rm_fit$lm_fit, long, row_nums)
@@ -161,25 +159,29 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
             agg_fn <- function(vals)
                 stats::aggregate(vals, list(Subject = long$Subject), mean)$x
 
-            if (isTRUE(self$options$saveResiduals) && isTRUE(self$options$saveRawResiduals) &&
-                self$options$rmResidsOV && self$results$rmResidsOV$isNotFilled()) {
-                self$results$rmResidsOV$setRowNums(row_nums)
-                self$results$rmResidsOV$setValues(agg_fn(stats::residuals(fit)))
+            if (isTRUE(self$options$residualsSavedToData) &&
+                (is.null(self$options$residualsSavedToDataType) ||
+                 identical(as.character(self$options$residualsSavedToDataType), "raw")) &&
+                !is.null(self$options$residsOV) && self$results$residsOV$isNotFilled()) {
+                self$results$residsOV$setRowNums(row_nums)
+                self$results$residsOV$setValues(agg_fn(stats::residuals(fit)))
             }
-            if (isTRUE(self$options$saveResiduals) && isTRUE(self$options$saveStudentizedResiduals) &&
-                self$options$rmStudentizedResidsOV && self$results$rmStudentizedResidsOV$isNotFilled()) {
-                self$results$rmStudentizedResidsOV$setRowNums(row_nums)
-                self$results$rmStudentizedResidsOV$setValues(agg_fn(stats::rstudent(fit)))
+            if (isTRUE(self$options$residualsSavedToData) &&
+                identical(as.character(self$options$residualsSavedToDataType), "student") &&
+                !is.null(self$options$residsOV) && self$results$residsOV$isNotFilled()) {
+                self$results$residsOV$setRowNums(row_nums)
+                self$results$residsOV$setValues(agg_fn(stats::rstudent(fit)))
             }
-            if (isTRUE(self$options$saveResiduals) && isTRUE(self$options$saveStandardizedResiduals) &&
-                self$options$rmStandardizedResidsOV && self$results$rmStandardizedResidsOV$isNotFilled()) {
-                self$results$rmStandardizedResidsOV$setRowNums(row_nums)
-                self$results$rmStandardizedResidsOV$setValues(agg_fn(stats::rstandard(fit)))
+            if (isTRUE(self$options$residualsSavedToData) &&
+                identical(as.character(self$options$residualsSavedToDataType), "standard") &&
+                !is.null(self$options$residsOV) && self$results$residsOV$isNotFilled()) {
+                self$results$residsOV$setRowNums(row_nums)
+                self$results$residsOV$setValues(agg_fn(stats::rstandard(fit)))
             }
-            if (isTRUE(self$options$savePredictions) && self$options$rmPredictOV &&
-                self$results$rmPredictOV$isNotFilled()) {
-                self$results$rmPredictOV$setRowNums(row_nums)
-                self$results$rmPredictOV$setValues(agg_fn(stats::fitted(fit)))
+            if (isTRUE(self$options$predictionsSavedToData) && !is.null(self$options$predictOV) &&
+                self$results$predictOV$isNotFilled()) {
+                self$results$predictOV$setRowNums(row_nums)
+                self$results$predictOV$setValues(agg_fn(stats::fitted(fit)))
             }
         },
 
@@ -445,8 +447,11 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
 # sphericity_list: output of .je_rm_sphericity_multi()
 
 .je_rm_apply_correction <- function(rm_summary, sphericity_list, options) {
-    correction <- as.character(options$sphericityCorrection %||% "none")
-    if (correction == "none" || length(sphericity_list) == 0) return(rm_summary)
+    use_gg <- isTRUE(options$sphericityCorrectionGreenhouseGeisser)
+    use_hf <- isTRUE(options$sphericityCorrectionHuynhFeldt)
+    if ((!use_gg && !use_hf) || length(sphericity_list) == 0) return(rm_summary)
+    # GG takes precedence when both selected
+    correction <- if (use_gg) "greenhouseGeisser" else "huynhFeldt"
 
     for (sph_entry in sphericity_list) {
         sph <- sph_entry$sphericity
@@ -480,6 +485,7 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
 # ── Effect sizes for RM ANOVA ─────────────────────────────────────────────────
 
 .je_rm_effect_sizes_tab <- function(rm_summary, options) {
+    if (!isTRUE(options$effectSizeEstimates)) return(data.frame())
     non_resid <- rm_summary[!grepl("Residuals", rm_summary$Term, ignore.case = TRUE), , drop = FALSE]
     resid     <- rm_summary[grepl("Residuals",  rm_summary$Term, ignore.case = TRUE), , drop = FALSE]
     if (nrow(non_resid) == 0 || nrow(resid) == 0) return(data.frame())
@@ -491,30 +497,30 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
 
     out <- data.frame(Term = non_resid$Term, Stratum = non_resid$Stratum, stringsAsFactors = FALSE)
 
-    if (isTRUE(options$etaSq))
+    if (isTRUE(options$effectSizeEtaSquared))
         out$`eta squared` <- .je_fmt(non_resid$`Sum Sq` / ss_total)
 
-    if (isTRUE(options$partialEtaSq)) {
+    if (isTRUE(options$effectSizePartialEtaSquared)) {
         # For within-subject terms use the within-subject error
         ss_e <- ifelse(grepl("Within", non_resid$Stratum), ss_err_within,
                        sum(resid$`Sum Sq`[grep("Subject\\]$", resid$Stratum)], na.rm = TRUE))
         out$`partial eta squared` <- .je_fmt(non_resid$`Sum Sq` / (non_resid$`Sum Sq` + ss_e))
     }
 
-    if (isTRUE(options$omegaSq) && !is.na(mse_within)) {
+    if (isTRUE(options$effectSizeOmegaSquared) && !is.na(mse_within)) {
         out$`omega squared` <- .je_fmt(pmax(0,
             (non_resid$`Sum Sq` - non_resid$Df * mse_within) / (ss_total + mse_within)
         ))
     }
 
-    if (isTRUE(options$partialOmegaSq) && !is.na(mse_within)) {
+    if (isTRUE(options$effectSizePartialOmegaSquared) && !is.na(mse_within)) {
         out$`partial omega squared` <- .je_fmt(pmax(0,
             (non_resid$`Sum Sq` - non_resid$Df * mse_within) /
             (non_resid$`Sum Sq` + ss_err_within + mse_within)
         ))
     }
 
-    if (isTRUE(options$generalizedEtaSq)) {
+    if (isTRUE(options$effectSizeGeneralEtaSquared)) {
         # Generalised eta²: SS_effect / (SS_effect + SS_between_error + SS_within_error)
         ss_b_err <- sum(resid$`Sum Sq`[!grepl("Within", resid$Stratum)], na.rm = TRUE)
         out$`generalized eta squared` <- .je_fmt(
@@ -532,7 +538,7 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
     grp_vars <- grp_vars[grp_vars %in% names(long)]
     group    <- interaction(long[, grp_vars, drop = FALSE], drop = TRUE, sep = " × ")
     sp       <- split(long$Value, group)
-    alpha    <- 1 - ((options$ciWidth %||% 95) / 100)
+    alpha    <- 1 - ((options$effectSizeCiLevel %||% 95) / 100)
 
     do.call(rbind, lapply(names(sp), function(g) {
         x  <- sp[[g]]
@@ -566,7 +572,9 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
     }
 
     # Sphericity — one block per effect
-    corr <- as.character(options$sphericityCorrection %||% "none")
+    corr <- if (isTRUE(options$sphericityCorrectionGreenhouseGeisser)) "greenhouseGeisser"
+            else if (isTRUE(options$sphericityCorrectionHuynhFeldt)) "huynhFeldt"
+            else "none"
     corr_label <- switch(corr, none = "None",
                          greenhouseGeisser = "Greenhouse-Geisser",
                          huynhFeldt = "Huynh-Feldt", "None")
@@ -618,11 +626,11 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
         display$`VS-MPR` <- ifelse(is.na(vs), "", .je_fmt(vs))
     }
 
-    corr_label <- switch(as.character(options$sphericityCorrection %||% "none"),
-        greenhouseGeisser = " (Greenhouse-Geisser corrected df)",
-        huynhFeldt        = " (Huynh-Feldt corrected df)",
-        ""
-    )
+    corr_label <- if (isTRUE(options$sphericityCorrectionGreenhouseGeisser))
+        " (Greenhouse-Geisser corrected df)"
+    else if (isTRUE(options$sphericityCorrectionHuynhFeldt))
+        " (Huynh-Feldt corrected df)"
+    else ""
 
     # Sphericity table
     sph_html <- if (length(sphericity_list) > 0) {
@@ -654,12 +662,12 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
 # ── Contrasts ─────────────────────────────────────────────────────────────────
 
 .je_rm_contrasts <- function(long, rm_levels, lm_fit, options) {
-    requested <- options$rmContrastType != "none" || isTRUE(options$rmCustomContrasts)
+    requested <- options$contrastType != "none" || isTRUE(options$rmCustomContrasts)
     if (!requested) return("<p>No repeated-measures contrasts are enabled.</p>")
 
     n    <- length(rm_levels)
     mats <- list()
-    ct   <- as.character(options$rmContrastType %||% "none")
+    ct   <- as.character(options$contrastType %||% "none")
 
     if (ct == "helmert")    mats$Helmert    <- stats::contr.helmert(n)
     if (ct == "polynomial") mats$Polynomial <- stats::contr.poly(n)
@@ -726,18 +734,17 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
 # ── Post hoc ──────────────────────────────────────────────────────────────────
 
 .je_rm_posthoc <- function(long, rm_fit, between, cells, rm_levels, options) {
-    if (!isTRUE(options$postHoc)) return("<p>Post hoc tests are disabled.</p>")
+    if (length(.je_chr_vec(options$postHocTerms)) == 0) return("<p>Post hoc tests are disabled.</p>")
     chunks  <- character()
     has_emm <- requireNamespace("emmeans", quietly = TRUE) && !is.null(rm_fit$lm_fit)
 
-    adj <- if (isTRUE(options$postHocBonferroni)) "bonferroni"
-           else if (isTRUE(options$postHocTukey))  "tukey"
-           else if (isTRUE(options$postHocScheffe)) "scheffe"
-           else if (isTRUE(options$postHocSidak))  "bonferroni"
+    adj <- if (isTRUE(options$postHocCorrectionBonferroni)) "bonferroni"
+           else if (isTRUE(options$postHocCorrectionTukey))  "tukey"
+           else if (isTRUE(options$postHocCorrectionScheffe)) "scheffe"
            else "holm"
 
     # ── Within-subject factor pairwise comparisons ────────────────────────────
-    if (isTRUE(options$postHocRmFactors)) {
+    if (TRUE) {
         if (has_emm) {
             emm <- tryCatch(emmeans::emmeans(rm_fit$lm_fit, specs = "Within"), error = function(e) NULL)
             if (!is.null(emm)) {
@@ -749,7 +756,7 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
                         "<h4>Within-subject pairwise comparisons (", .je_escape(adj), ")</h4>",
                         .je_table_html(out)
                     ))
-                    if (isTRUE(options$postHocEffectSizes))
+                    if (isTRUE(options$postHocEffectSize))
                         chunks <- c(chunks, .je_rm_posthoc_d(pw, long))
                 }
             }
@@ -767,7 +774,7 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
     }
 
     # ── Between-subject factor pairwise comparisons ───────────────────────────
-    if (isTRUE(options$postHocBetweenFactors) && length(between) > 0 && has_emm) {
+    if (length(between) > 0 && has_emm) {
         for (f in between) {
             emm <- tryCatch(emmeans::emmeans(rm_fit$lm_fit, specs = f), error = function(e) NULL)
             if (is.null(emm)) next
@@ -786,7 +793,7 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
     }
 
     # ── Interaction post hoc: Within at each level of Between ─────────────────
-    if (isTRUE(options$postHocInteractions) && length(between) > 0 && has_emm) {
+    if (length(between) > 0 && has_emm) {
         for (f in between) {
             # Within-subject comparisons at each level of the between factor
             emm_w_by_b <- tryCatch(
@@ -845,7 +852,7 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
         p          = .je_p(pw$p.value),
         check.names = FALSE
     )
-    if (isTRUE(options$postHocSignificantFlags))
+    if (isTRUE(options$postHocSignificanceFlag))
         out$sig <- ifelse(!is.na(pw$p.value) & pw$p.value < .05, "*", "")
     if (isTRUE(options$vovkSellke))
         out$`VS-MPR` <- .je_fmt(.je_vovk_sellke(pw$p.value))
@@ -865,7 +872,7 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
         p          = .je_p(pw$p.value),
         check.names = FALSE
     )
-    if (isTRUE(options$postHocSignificantFlags))
+    if (isTRUE(options$postHocSignificanceFlag))
         out$sig <- ifelse(!is.na(pw$p.value) & pw$p.value < .05, "*", "")
     if (isTRUE(options$vovkSellke))
         out$`VS-MPR` <- .je_fmt(.je_vovk_sellke(pw$p.value))
@@ -900,12 +907,12 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
 # ── Marginal means ────────────────────────────────────────────────────────────
 
 .je_rm_marginal_means <- function(long, rm_fit, between, rm_levels, options) {
-    if (!isTRUE(options$marginalMeans)) return("<p>Estimated marginal means are disabled.</p>")
+    if (length(.je_chr_vec(options$marginalMeanTerms)) == 0) return("<p>Estimated marginal means are disabled.</p>")
 
     if (requireNamespace("emmeans", quietly = TRUE) && !is.null(rm_fit$lm_fit)) {
         emm <- tryCatch(emmeans::emmeans(rm_fit$lm_fit, specs = "Within"), error = function(e) NULL)
         if (!is.null(emm)) {
-            ci_level <- (options$ciWidth %||% 95) / 100
+            ci_level <- (options$effectSizeCiLevel %||% 95) / 100
             em_df    <- as.data.frame(stats::confint(emm, level = ci_level))
             out <- data.frame(
                 Level = as.character(em_df$Within),
@@ -919,8 +926,8 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
             html <- paste0("<p>Estimated marginal means via <code>emmeans</code>.</p>",
                            .je_table_html(out))
 
-            if (isTRUE(options$marginalMeansPairwise %||% FALSE)) {
-                adj <- .je_adjust_method(options$marginalMeansCiAdjustment)
+            if (FALSE) {
+                adj <- .je_adjust_method(options$marginalMeanCiCorrection)
                 pw  <- tryCatch(
                     as.data.frame(emmeans::contrast(emm, method = "pairwise", adjust = adj)),
                     error = function(e) NULL
@@ -951,7 +958,7 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
 # ── Simple effects ────────────────────────────────────────────────────────────
 
 .je_rm_simple_effects <- function(long, between, options) {
-    if (!isTRUE(options$simpleEffects)) return("<p>Simple effects analysis is disabled.</p>")
+    if (!nzchar(as.character(options$simpleMainEffectFactor %||% ""))) return("<p>Simple effects analysis is disabled.</p>")
     if (length(between) == 0)
         return("<p>Simple main effects require a between-subject moderator in this build.</p>")
     mod <- between[1]
@@ -979,7 +986,7 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
 # ── Nonparametric ─────────────────────────────────────────────────────────────
 
 .je_rm_nonparametric <- function(wide, cells, long, options) {
-    if (!isTRUE(options$friedman)) return("<p>Friedman analysis is disabled.</p>")
+    if (!nzchar(as.character(options$friedmanWithinFactor %||% ""))) return("<p>Friedman analysis is disabled.</p>")
     mat <- as.matrix(wide[, cells, drop = FALSE])
     ft  <- tryCatch(stats::friedman.test(mat), error = function(e) NULL)
     if (is.null(ft)) return("<p>Friedman test could not be run.</p>")
@@ -987,7 +994,7 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
         "<p>Friedman χ²(", ft$parameter, ") = ", .je_fmt(unname(ft$statistic)),
         ", p = ", .je_p(ft$p.value), ".</p>"
     )
-    if (isTRUE(options$conoverPostHoc)) {
+    if (isTRUE(options$conoverTest)) {
         html <- paste0(html, "<p>Conover post hoc tests require the <code>NSM3</code> or <code>rstatix</code> package — not yet ported.</p>")
     }
     html
@@ -1129,9 +1136,8 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
 
 .je_rm_plot_status <- function(long, options) {
     enabled <- c(
-        if (isTRUE(options$qqPlotResiduals))  "Q-Q residual plot",
-        if (isTRUE(options$residualPlots))    "residual plot",
-        if (isTRUE(options$raincloudPlots))   "raincloud plot"
+        if (isTRUE(options$qqPlot)) "Q-Q residual plot",
+        if (nzchar(as.character(options$rainCloudHorizontalAxis %||% ""))) "raincloud plot"
     )
     if (length(enabled) == 0) return("<p>No plot options are enabled.</p>")
     paste0("<p>Rendered: ", .je_escape(paste(enabled, collapse = ", ")), ".</p>")
@@ -1139,10 +1145,10 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
 
 .je_rm_saved_columns_html <- function(options) {
     requested <- c(
-        if (isTRUE(options$saveResiduals) && isTRUE(options$saveRawResiduals))          "mean raw residuals",
-        if (isTRUE(options$saveResiduals) && isTRUE(options$saveStudentizedResiduals))  "mean studentized residuals",
-        if (isTRUE(options$saveResiduals) && isTRUE(options$saveStandardizedResiduals)) "mean standardized residuals",
-        if (isTRUE(options$savePredictions))                                             "mean predicted values"
+        if (isTRUE(options$residualsSavedToData) && identical(as.character(options$residualsSavedToDataType %||% "raw"), "raw"))      "mean raw residuals",
+        if (isTRUE(options$residualsSavedToData) && identical(as.character(options$residualsSavedToDataType), "student"))   "mean studentized residuals",
+        if (isTRUE(options$residualsSavedToData) && identical(as.character(options$residualsSavedToDataType), "standard"))  "mean standardized residuals",
+        if (isTRUE(options$predictionsSavedToData))                                             "mean predicted values"
     )
     if (length(requested) == 0) return("<p>No dataset output columns requested.</p>")
     paste0("<p>Output columns (subject-level means): ",

@@ -1,4 +1,4 @@
-#' @importFrom jmvcore .
+﻿#' @importFrom jmvcore .
 enhancedAnovaClass <- if (requireNamespace("jmvcore", quietly = TRUE)) R6::R6Class(
     "enhancedAnovaClass",
     inherit = enhancedAnovaBase,
@@ -59,7 +59,7 @@ enhancedAnovaClass <- if (requireNamespace("jmvcore", quietly = TRUE)) R6::R6Cla
             desc_tab    <- .je_descriptives(dat, dep, factors, self$options)
             assumptions <- .je_assumptions(dat, dep, factors, fit, self$options)
             posthoc     <- .je_posthoc(dat, dep, factors, fit, self$options)
-            kruskal     <- if (isTRUE(self$options$kruskalWallis)) .je_kruskal(dat, dep, factors, self$options) else "<p>Kruskal-Wallis is disabled.</p>"
+            kruskal     <- if (length(.je_chr_vec(self$options$kruskalWallisFactors)) > 0) .je_kruskal(dat, dep, factors, self$options) else "<p>Assign factors to the Kruskal-Wallis Test box to enable nonparametric analysis.</p>"
             marginal    <- .je_marginal_means(dat, dep, factors, covs, fit, self$options)
             simple      <- .je_simple_effects(dat, dep, factors, fit, self$options)
             contrast    <- .je_contrasts(dat, dep, factors, fit, self$options)
@@ -99,33 +99,34 @@ enhancedAnovaClass <- if (requireNamespace("jmvcore", quietly = TRUE)) R6::R6Cla
             self$results$reproducibility$setContent(.je_repro_html(formula, self$options))
 
             private$.plotState <- list(data = dat, dep = dep, factors = factors, fit = fit)
-            if (isTRUE(self$options$qqPlotResiduals))
+            if (isTRUE(self$options$qqPlot))
                 self$results$qqPlot$setState(private$.plotState)
-            if (isTRUE(self$options$residualPlots))
-                self$results$residualPlot$setState(private$.plotState)
-            if (isTRUE(self$options$raincloudPlots))
+            if (!is.null(.je_chr(self$options$rainCloudHorizontalAxis)))
                 self$results$raincloudPlot$setState(private$.plotState)
 
             private$.populateOutputs(fit, row_nums)
         },
 
         .populateOutputs = function(fit, row_nums) {
-            if (isTRUE(self$options$saveResiduals) && isTRUE(self$options$saveRawResiduals) &&
-                self$options$residsOV && self$results$residsOV$isNotFilled()) {
+            if (isTRUE(self$options$residualsSavedToData) &&
+                self$options$residualsSavedToDataType %in% c("raw", NULL) &&
+                !is.null(self$options$residsOV) && self$results$residsOV$isNotFilled()) {
                 self$results$residsOV$setRowNums(row_nums)
                 self$results$residsOV$setValues(stats::residuals(fit))
             }
-            if (isTRUE(self$options$saveResiduals) && isTRUE(self$options$saveStudentizedResiduals) &&
-                self$options$studentizedResidsOV && self$results$studentizedResidsOV$isNotFilled()) {
-                self$results$studentizedResidsOV$setRowNums(row_nums)
-                self$results$studentizedResidsOV$setValues(stats::rstudent(fit))
+            if (isTRUE(self$options$residualsSavedToData) &&
+                identical(self$options$residualsSavedToDataType, "student") &&
+                !is.null(self$options$residsOV) && self$results$residsOV$isNotFilled()) {
+                self$results$residsOV$setRowNums(row_nums)
+                self$results$residsOV$setValues(stats::rstudent(fit))
             }
-            if (isTRUE(self$options$saveResiduals) && isTRUE(self$options$saveStandardizedResiduals) &&
-                self$options$standardizedResidsOV && self$results$standardizedResidsOV$isNotFilled()) {
-                self$results$standardizedResidsOV$setRowNums(row_nums)
-                self$results$standardizedResidsOV$setValues(stats::rstandard(fit))
+            if (isTRUE(self$options$residualsSavedToData) &&
+                identical(self$options$residualsSavedToDataType, "standard") &&
+                !is.null(self$options$residsOV) && self$results$residsOV$isNotFilled()) {
+                self$results$residsOV$setRowNums(row_nums)
+                self$results$residsOV$setValues(stats::rstandard(fit))
             }
-            if (isTRUE(self$options$savePredictions) && self$options$predictOV &&
+            if (isTRUE(self$options$predictionsSavedToData) && self$options$predictOV &&
                 self$results$predictOV$isNotFilled()) {
                 self$results$predictOV$setRowNums(row_nums)
                 self$results$predictOV$setValues(stats::fitted(fit))
@@ -226,13 +227,14 @@ enhancedAnovaClass <- if (requireNamespace("jmvcore", quietly = TRUE)) R6::R6Cla
 # ── Welch / Brown-Forsythe omnibus correction ─────────────────────────────────
 
 .je_welch_correction <- function(dat, dep, factors, options) {
-    method <- as.character(options$homogeneityCorrection %||% "none")
-    if (method == "none" || length(factors) != 1) return(NULL)
+    welch  <- isTRUE(options$homogeneityCorrectionWelch)
+    brown  <- isTRUE(options$homogeneityCorrectionBrown)
+    if ((!welch && !brown) || length(factors) != 1) return(NULL)
 
     f1   <- factors[1]
     form <- stats::as.formula(paste(dep, "~", f1))
 
-    if (method == "welch") {
+    if (welch) {
         res <- tryCatch(stats::oneway.test(form, data = dat, var.equal = FALSE), error = function(e) NULL)
         if (is.null(res)) return(NULL)
         return(list(
@@ -244,7 +246,7 @@ enhancedAnovaClass <- if (requireNamespace("jmvcore", quietly = TRUE)) R6::R6Cla
         ))
     }
 
-    if (method == "brownForsythe") {
+    if (brown) {
         # BF test: ANOVA on absolute deviations from group medians
         group   <- dat[[f1]]
         medians <- tapply(dat[[dep]], group, stats::median, na.rm = TRUE)
@@ -289,14 +291,15 @@ enhancedAnovaClass <- if (requireNamespace("jmvcore", quietly = TRUE)) R6::R6Cla
     partial_omega <- pmax(0, (ss - dft * mse) / (ss + sse + mse))
 
     out <- data.frame(Term = terms$Term, stringsAsFactors = FALSE)
-    if (isTRUE(options$etaSq))          out$`eta squared`         <- .je_fmt(eta)
-    if (isTRUE(options$partialEtaSq))   out$`partial eta squared`  <- .je_fmt(partial_eta)
-    if (isTRUE(options$omegaSq))        out$`omega squared`        <- .je_fmt(omega)
-    if (isTRUE(options$partialOmegaSq)) out$`partial omega squared` <- .je_fmt(partial_omega)
+    es_on <- isTRUE(options$effectSizeEstimates)
+    if (es_on && isTRUE(options$effectSizeEtaSquared))          out$`eta squared`          <- .je_fmt(eta)
+    if (es_on && isTRUE(options$effectSizePartialEtaSquared))   out$`partial eta squared`  <- .je_fmt(partial_eta)
+    if (es_on && isTRUE(options$effectSizeOmegaSquared))        out$`omega squared`        <- .je_fmt(omega)
+    if (es_on && isTRUE(options$effectSizePartialOmegaSquared)) out$`partial omega squared` <- .je_fmt(partial_omega)
 
     # Confidence intervals for partial eta squared via noncentral F
     if (isTRUE(options$effectSizeCi) && !is.null(fv)) {
-        ci_level <- (options$ciWidth %||% 95) / 100
+        ci_level <- (options$effectSizeCiLevel %||% 95) / 100
         cis <- mapply(.je_partial_eta_ci, fv, dft, df_err, n,
                       MoreArgs = list(ci_level = ci_level), SIMPLIFY = FALSE)
         out$`peta2 CI lower` <- .je_fmt(vapply(cis, function(x) x["lower"], numeric(1)))
@@ -395,7 +398,7 @@ enhancedAnovaClass <- if (requireNamespace("jmvcore", quietly = TRUE)) R6::R6Cla
 # ── Descriptive statistics ────────────────────────────────────────────────────
 
 .je_descriptives <- function(dat, dep, factors, options) {
-    alpha <- 1 - ((options$ciWidth %||% 95) / 100)
+    alpha <- 1 - ((options$effectSizeCiLevel %||% 95) / 100)
     if (length(factors) == 0) {
         x  <- dat[[dep]]
         se <- stats::sd(x) / sqrt(length(x))
@@ -428,7 +431,8 @@ enhancedAnovaClass <- if (requireNamespace("jmvcore", quietly = TRUE)) R6::R6Cla
 # ── Post hoc tests ────────────────────────────────────────────────────────────
 
 .je_posthoc <- function(dat, dep, factors, fit, options) {
-    if (!isTRUE(options$postHoc)) return("<p>Post hoc tests are disabled.</p>")
+    if (length(.je_chr_vec(options$postHocTerms)) == 0)
+        return("<p>Assign factors to Post Hoc Terms to run post hoc tests.</p>")
     if (length(factors) == 0) return("<p>Post hoc tests require at least one fixed factor.</p>")
 
     if (requireNamespace("emmeans", quietly = TRUE))
@@ -444,11 +448,11 @@ enhancedAnovaClass <- if (requireNamespace("jmvcore", quietly = TRUE)) R6::R6Cla
         if (is.null(emm)) next
 
         methods <- character()
-        if (isTRUE(options$postHocTukey))    methods <- c(methods, "tukey")
-        if (isTRUE(options$postHocScheffe))  methods <- c(methods, "scheffe")
-        if (isTRUE(options$postHocBonferroni)) methods <- c(methods, "bonferroni")
-        if (isTRUE(options$postHocHolm))     methods <- c(methods, "holm")
-        if (isTRUE(options$postHocSidak))    methods <- c(methods, "sidak")
+        if (isTRUE(options$postHocCorrectionTukey))    methods <- c(methods, "tukey")
+        if (isTRUE(options$postHocCorrectionScheffe))  methods <- c(methods, "scheffe")
+        if (isTRUE(options$postHocCorrectionBonferroni)) methods <- c(methods, "bonferroni")
+        if (isTRUE(options$postHocCorrectionHolm))     methods <- c(methods, "holm")
+        if (isTRUE(options$postHocCorrectionSidak))    methods <- c(methods, "sidak")
         if (length(methods) == 0) methods <- "tukey"
 
         for (adj in methods) {
@@ -457,7 +461,7 @@ enhancedAnovaClass <- if (requireNamespace("jmvcore", quietly = TRUE)) R6::R6Cla
                 error = function(e) NULL
             )
             if (is.null(pw)) next
-            ci_level <- (options$ciWidth %||% 95) / 100
+            ci_level <- (options$effectSizeCiLevel %||% 95) / 100
             pw_ci <- tryCatch(
                 as.data.frame(stats::confint(emmeans::contrast(emm, method = "pairwise", adjust = adj),
                                              level = ci_level)),
@@ -487,7 +491,7 @@ enhancedAnovaClass <- if (requireNamespace("jmvcore", quietly = TRUE)) R6::R6Cla
         }
 
         # Games-Howell (unequal variances, requires manual implementation)
-        if (isTRUE(options$postHocGamesHowell)) {
+        if (isTRUE(options$postHocTypeGames)) {
             gh <- .je_games_howell(dat, dep, fac)
             if (!is.null(gh))
                 chunks <- c(chunks, paste0("<h4>Games-Howell — ", .je_escape(fac), "</h4>", .je_table_html(gh)))
@@ -497,7 +501,7 @@ enhancedAnovaClass <- if (requireNamespace("jmvcore", quietly = TRUE)) R6::R6Cla
     if (length(chunks) == 0) return("<p>No post hoc output could be calculated.</p>")
 
     # Interaction post hoc (conditional comparisons)
-    if (length(factors) >= 2 && isTRUE(options$conditionalComparisons))
+    if (length(factors) >= 2 && isTRUE(options$postHocConditionalTable))
         chunks <- c(chunks, .je_emmeans_interaction_posthoc(fit, factors, options))
 
     paste(chunks, collapse = "")
@@ -574,7 +578,7 @@ enhancedAnovaClass <- if (requireNamespace("jmvcore", quietly = TRUE)) R6::R6Cla
     for (fac in factors) {
         formula <- stats::as.formula(paste(dep, "~", fac))
         fit     <- tryCatch(stats::aov(formula, data = dat), error = function(e) NULL)
-        if (!is.null(fit) && isTRUE(options$postHocTukey)) {
+        if (!is.null(fit) && isTRUE(options$postHocCorrectionTukey)) {
             tk <- tryCatch(stats::TukeyHSD(fit), error = function(e) NULL)
             if (!is.null(tk)) {
                 tab <- as.data.frame(tk[[1]])
@@ -608,8 +612,8 @@ enhancedAnovaClass <- if (requireNamespace("jmvcore", quietly = TRUE)) R6::R6Cla
 # ── Marginal means ────────────────────────────────────────────────────────────
 
 .je_marginal_means <- function(dat, dep, factors, covariates, fit, options) {
-    if (!isTRUE(options$marginalMeans)) return("<p>Estimated marginal means are disabled.</p>")
     terms <- intersect(.je_chr_vec(options$marginalMeanTerms), factors)
+    if (length(terms) == 0) return("<p>Assign factors to Marginal Means Terms to compute estimated marginal means.</p>")
     if (length(terms) == 0) terms <- factors
     if (length(terms) == 0) return("<p>Estimated marginal means require at least one fixed factor.</p>")
 
@@ -617,7 +621,7 @@ enhancedAnovaClass <- if (requireNamespace("jmvcore", quietly = TRUE)) R6::R6Cla
         specs <- if (length(terms) == 1) terms else terms
         emm <- tryCatch(emmeans::emmeans(fit, specs = terms), error = function(e) NULL)
         if (!is.null(emm)) {
-            ci_level <- (options$ciWidth %||% 95) / 100
+            ci_level <- (options$effectSizeCiLevel %||% 95) / 100
             em_df    <- as.data.frame(stats::confint(emm, level = ci_level))
             out <- data.frame(
                 Term  = paste(terms, collapse = " × "),
@@ -634,8 +638,8 @@ enhancedAnovaClass <- if (requireNamespace("jmvcore", quietly = TRUE)) R6::R6Cla
                 .je_table_html(out)
             )
 
-            if (isTRUE(options$marginalMeansPairwise) && length(terms) == 1) {
-                adj <- .je_adjust_method(options$marginalMeansCiAdjustment)
+            if (isTRUE(options$marginalMeansPairwise %||% FALSE) && length(terms) == 1) {
+                adj <- .je_adjust_method(options$marginalMeanCiCorrection)
                 pw  <- tryCatch(
                     as.data.frame(emmeans::contrast(emm, method = "pairwise", adjust = adj)),
                     error = function(e) NULL
@@ -656,7 +660,7 @@ enhancedAnovaClass <- if (requireNamespace("jmvcore", quietly = TRUE)) R6::R6Cla
                 }
             }
 
-            if (isTRUE(options$marginalMeansCompareZero) && length(terms) == 1) {
+            if (isTRUE(options$marginalMeanComparedToZero) && length(terms) == 1) {
                 cz <- tryCatch(
                     as.data.frame(emmeans::contrast(emm, method = "eff")),
                     error = function(e) NULL
@@ -680,7 +684,7 @@ enhancedAnovaClass <- if (requireNamespace("jmvcore", quietly = TRUE)) R6::R6Cla
     # Fallback: observed cell means
     group   <- interaction(dat[, terms, drop = FALSE], drop = TRUE, sep = " × ")
     split_y <- split(dat[[dep]], group)
-    alpha   <- 1 - ((options$ciWidth %||% 95) / 100)
+    alpha   <- 1 - ((options$effectSizeCiLevel %||% 95) / 100)
     out <- do.call(rbind, lapply(names(split_y), function(g) {
         x  <- split_y[[g]]
         se <- stats::sd(x) / sqrt(length(x))
@@ -699,10 +703,10 @@ enhancedAnovaClass <- if (requireNamespace("jmvcore", quietly = TRUE)) R6::R6Cla
 # ── Simple effects ────────────────────────────────────────────────────────────
 
 .je_simple_effects <- function(dat, dep, factors, fit, options) {
-    if (!isTRUE(options$simpleEffects)) return("<p>Simple effects analysis is disabled.</p>")
-    simple <- .je_chr(options$simpleEffectFactor)
-    mod1   <- .je_chr(options$moderatorFactor1)
-    mod2   <- .je_chr(options$moderatorFactor2)
+    simple <- .je_chr(options$simpleMainEffectFactor)
+    if (is.null(simple) || !nzchar(simple)) return("<p>Assign a factor to Simple Effect Factor to run simple effects analysis.</p>")
+    mod1   <- .je_chr(options$simpleMainEffectModeratorFactorOne)
+    mod2   <- .je_chr(options$simpleMainEffectModeratorFactorTwo)
     if (is.null(simple) || !(simple %in% factors))
         return("<p>Select a simple effect factor from the fixed factors.</p>")
     moderators <- intersect(c(mod1, mod2), factors)
@@ -722,7 +726,7 @@ enhancedAnovaClass <- if (requireNamespace("jmvcore", quietly = TRUE)) R6::R6Cla
         html <- paste0("<h4>", .je_escape(level), "</h4>",
                        .je_model_html(f2$aov_tab, stats::as.formula(paste(dep, "~", simple)),
                                       nrow(sub), NULL, f2$ss_type, NULL, options))
-        if (isTRUE(options$simpleEffectsPostHoc) && !inherits(f2$fit, "error"))
+        if (isTRUE(options$simpleEffectsPostHoc %||% FALSE) && !inherits(f2$fit, "error"))
             html <- paste0(html, .je_posthoc(sub, dep, simple, f2$fit, options))
         html
     })
@@ -733,25 +737,28 @@ enhancedAnovaClass <- if (requireNamespace("jmvcore", quietly = TRUE)) R6::R6Cla
 # ── Contrasts ─────────────────────────────────────────────────────────────────
 
 .je_contrasts <- function(dat, dep, factors, fit, options) {
-    requested <- isTRUE(options$plannedContrasts) || isTRUE(options$polynomialContrasts) ||
-        isTRUE(options$helmertContrasts) || isTRUE(options$differenceContrasts) ||
-        isTRUE(options$deviationContrasts) || isTRUE(options$repeatedContrasts) ||
-        isTRUE(options$customContrasts)
-    if (!requested) return("<p>No contrast options are enabled.</p>")
+    ct <- as.character(options$contrastType %||% "none")
+    if (ct == "none") return("<p>Select a contrast type in the Contrasts section.</p>")
     if (length(factors) == 0) return("<p>Contrasts require at least one fixed factor.</p>")
 
     chunks <- character()
     for (fac in factors) {
         levs <- levels(dat[[fac]])
         mats <- list()
-        if (isTRUE(options$helmertContrasts))    mats$Helmert    <- stats::contr.helmert(length(levs))
-        if (isTRUE(options$polynomialContrasts)) mats$Polynomial <- stats::contr.poly(length(levs))
-        if (isTRUE(options$deviationContrasts))  mats$Deviation  <- stats::contr.sum(length(levs))
-        if (isTRUE(options$differenceContrasts) || isTRUE(options$repeatedContrasts))
+        if (ct == "helmert")    mats$Helmert    <- stats::contr.helmert(length(levs))
+        if (ct == "polynomial") mats$Polynomial <- stats::contr.poly(length(levs))
+        if (ct == "deviation")  mats$Deviation  <- stats::contr.sum(length(levs))
+        if (ct %in% c("difference", "repeated"))
             mats$Difference <- .je_contr_diff(length(levs))
+        if (ct == "simple") {
+            # Simple contrasts: compare each level to the first
+            mat <- matrix(0, nrow = length(levs), ncol = length(levs) - 1)
+            for (j in seq_len(ncol(mat))) { mat[1, j] <- -1; mat[j + 1, j] <- 1 }
+            mats$Simple <- mat
+        }
 
-        if (isTRUE(options$customContrasts)) {
-            custom <- .je_parse_custom_contrasts(options$contrastSyntax, length(levs))
+        if (FALSE) {  # custom contrasts disabled in this UI
+            custom <- .je_parse_custom_contrasts("", length(levs))
             if (nrow(custom) > 0) {
                 mats$Custom <- t(custom)
                 chunks <- c(chunks, .je_custom_contrast_tests(dat, dep, fac, custom, fit))
@@ -849,16 +856,16 @@ enhancedAnovaClass <- if (requireNamespace("jmvcore", quietly = TRUE)) R6::R6Cla
             "<p>H(", df, ") = ", .je_fmt(H), ", p = ", .je_p(p), ", N = ", n, ".</p>"
         )
 
-        if (isTRUE(options$kruskalEpsilonSq)) {
+        if (isTRUE(options$kruskalEpsilon)) {
             eps <- H / (n - 1)
             chunk <- paste0(chunk, "<p>Epsilon squared = ", .je_fmt(eps), ".</p>")
         }
-        if (isTRUE(options$kruskalEtaSq)) {
+        if (isTRUE(options$kruskalEta)) {
             k   <- nlevels(as.factor(dat[[fac]]))
             eta <- (H - k + 1) / (n - k)
             chunk <- paste0(chunk, "<p>Eta squared (H-based) = ", .je_fmt(max(0, eta)), ".</p>")
         }
-        if (isTRUE(options$dunnPostHoc)) {
+        if (isTRUE(options$postHocTypeDunn)) {
             chunk <- paste0(chunk, .je_dunn_posthoc(dat, dep, fac, options))
         }
         chunks <- c(chunks, chunk)
@@ -895,7 +902,7 @@ enhancedAnovaClass <- if (requireNamespace("jmvcore", quietly = TRUE)) R6::R6Cla
 # ── Bootstrap effect-size CIs ─────────────────────────────────────────────────
 
 .je_bootstrap_effects <- function(dat, dep, factors, covariates, options) {
-    if (!isTRUE(options$bootstrapCi) && !isTRUE(options$postHocBootstrap)) return("")
+    if (!isTRUE(options$bootstrapCi %||% FALSE) && !isTRUE(options$postHocTypeStandardBootstrap %||% FALSE)) return("")
     rhs <- c(factors, covariates)
     if (length(rhs) == 0) return("<p>Bootstrap CIs require model terms.</p>")
     reps    <- max(100L, min(as.integer(options$bootstrapSamples %||% 1000), 2000L))
@@ -996,19 +1003,20 @@ enhancedAnovaClass <- if (requireNamespace("jmvcore", quietly = TRUE)) R6::R6Cla
 # ── Order-restricted + Bayesian ANOVA dispatcher ─────────────────────────────
 
 .je_order_restricted_full <- function(dat, dep, factors, covs, fit, aov_tab, options) {
-    any_active <- isTRUE(options$orderRestricted) ||
-                  isTRUE(options$modelComparison)  ||
-                  isTRUE(options$informedHypothesisTests)
+    any_active <- isTRUE(options$orderRestricted %||% FALSE) ||
+                  isTRUE(options$modelComparison %||% FALSE)  ||
+                  isTRUE(options$informedHypothesisTests %||% FALSE) ||
+                  nzchar(trimws(as.character(options$restrictedSyntax %||% "")))
     if (!any_active)
         return("<p>Bayesian / order-restricted hypothesis testing is disabled.</p>")
 
     chunks <- character()
 
     # ── Item 2: Order-restricted inference via bain ───────────────────────────
-    if ((isTRUE(options$orderRestricted) || isTRUE(options$informedHypothesisTests)) &&
-        nzchar(trimws(as.character(options$orderRestrictedSyntax %||% "")))) {
+    if ((isTRUE(options$orderRestricted %||% FALSE) || isTRUE(options$informedHypothesisTests %||% FALSE)) &&
+        nzchar(trimws(as.character(options$orderRestrictedSyntax %||% options$restrictedSyntax %||% "")))) {
         chunks <- c(chunks, .je_bain_analysis(fit, options))
-    } else if (isTRUE(options$orderRestricted) || isTRUE(options$informedHypothesisTests)) {
+    } else if (isTRUE(options$orderRestricted %||% FALSE) || isTRUE(options$informedHypothesisTests %||% FALSE)) {
         chunks <- c(chunks, paste0(
             "<p><strong>Order-restricted inference (bain):</strong> ",
             "enter hypothesis constraints in the syntax field, e.g. ",
@@ -1017,7 +1025,7 @@ enhancedAnovaClass <- if (requireNamespace("jmvcore", quietly = TRUE)) R6::R6Cla
     }
 
     # ── Item 1: Bayesian ANOVA via BayesFactor ────────────────────────────────
-    if (isTRUE(options$modelComparison))
+    if (isTRUE(options$modelComparison %||% FALSE))
         chunks <- c(chunks, .je_bayesian_anova(dat, dep, factors, covs, options))
 
     paste(chunks, collapse = "")
@@ -1026,7 +1034,7 @@ enhancedAnovaClass <- if (requireNamespace("jmvcore", quietly = TRUE)) R6::R6Cla
 # ── Item 2: bain — order-restricted / informed hypothesis testing ─────────────
 
 .je_bain_analysis <- function(fit, options) {
-    h_raw <- trimws(as.character(options$orderRestrictedSyntax %||% ""))
+    h_raw <- trimws(as.character(options$orderRestrictedSyntax %||% options$restrictedSyntax %||% ""))
     if (!nzchar(h_raw))
         return("<p>No hypothesis syntax provided.</p>")
 
@@ -1217,15 +1225,16 @@ enhancedAnovaClass <- if (requireNamespace("jmvcore", quietly = TRUE)) R6::R6Cla
 
 .je_plot_status <- function(dat, dep, factors, options) {
     enabled <- c(
-        if (isTRUE(options$qqPlotResiduals))   "Q-Q residual plot",
-        if (isTRUE(options$residualPlots))     "residual plot",
-        if (isTRUE(options$descriptivePlots))  "descriptive plot",
-        if (isTRUE(options$barPlots))          "bar plot",
-        if (isTRUE(options$raincloudPlots))    "raincloud plot"
+        if (isTRUE(options$qqPlot))   "Q-Q residual plot",
+        if (!is.null(.je_chr(options$descriptivePlotHorizontalAxis %||% NULL))) "descriptive plot",
+        if (!is.null(.je_chr(options$barPlotHorizontalAxis %||% NULL)))         "bar plot",
+        if (!is.null(.je_chr(options$rainCloudHorizontalAxis %||% NULL)))       "raincloud plot"
     )
     if (length(enabled) == 0) return("<p>No plot options are enabled.</p>")
     html <- paste0("<p>Requested: ", .je_escape(paste(enabled, collapse = ", ")), ".</p>")
-    if (length(factors) > 0 && (isTRUE(options$descriptivePlots) || isTRUE(options$barPlots) || isTRUE(options$raincloudPlots))) {
+    if (length(factors) > 0 && (!is.null(.je_chr(options$descriptivePlotHorizontalAxis %||% NULL)) ||
+                                 !is.null(.je_chr(options$barPlotHorizontalAxis %||% NULL)) ||
+                                 !is.null(.je_chr(options$rainCloudHorizontalAxis %||% NULL)))) {
         desc <- .je_descriptives(dat, dep, factors[1], options)
         html <- paste0(html, "<p>Summary for ", .je_escape(factors[1]), ":</p>", .je_table_html(desc))
     }
@@ -1233,18 +1242,18 @@ enhancedAnovaClass <- if (requireNamespace("jmvcore", quietly = TRUE)) R6::R6Cla
 }
 
 .je_publication_html <- function(options) {
-    requested <- isTRUE(options$publicationMode) || isTRUE(options$publicationTables) ||
-        isTRUE(options$publicationFigures) || isTRUE(options$exportWord) || isTRUE(options$exportPdf)
+    requested <- isTRUE(options$publicationMode %||% FALSE) || isTRUE(options$publicationTables %||% FALSE) ||
+        isTRUE(options$publicationFigures %||% FALSE) || isTRUE(options$exportWord %||% FALSE) || isTRUE(options$exportPdf %||% FALSE)
     if (!requested) return("<p>Publication mode is disabled.</p>")
     paste0("<p>Publication mode: result tables are produced as copyable HTML. Word/PDF export is handled at the jamovi application level.</p>")
 }
 
 .je_saved_columns_html <- function(options) {
     requested <- c(
-        if (isTRUE(options$saveResiduals) && isTRUE(options$saveRawResiduals))          "raw residuals",
-        if (isTRUE(options$saveResiduals) && isTRUE(options$saveStudentizedResiduals))  "studentized residuals",
-        if (isTRUE(options$saveResiduals) && isTRUE(options$saveStandardizedResiduals)) "standardized residuals",
-        if (isTRUE(options$savePredictions))                                             "predicted values"
+        if (isTRUE(options$residualsSavedToData) && identical(as.character(options$residualsSavedToDataType %||% "raw"), "raw"))     "raw residuals",
+        if (isTRUE(options$residualsSavedToData) && identical(as.character(options$residualsSavedToDataType), "student"))  "studentized residuals",
+        if (isTRUE(options$residualsSavedToData) && identical(as.character(options$residualsSavedToDataType), "standard")) "standardized residuals",
+        if (isTRUE(options$predictionsSavedToData))                                             "predicted values"
     )
     if (length(requested) == 0) return("<p>No dataset output columns requested.</p>")
     paste0("<p>Output columns: ", .je_escape(paste(requested, collapse = ", ")), ".</p>")
@@ -1308,10 +1317,10 @@ enhancedAnovaClass <- if (requireNamespace("jmvcore", quietly = TRUE)) R6::R6Cla
 }
 
 .je_posthoc_adjust <- function(options) {
-    if (isTRUE(options$postHocTukey))      return("tukey")
-    if (isTRUE(options$postHocBonferroni)) return("bonferroni")
-    if (isTRUE(options$postHocHolm))       return("holm")
-    if (isTRUE(options$postHocSidak))      return("bonferroni")
+    if (isTRUE(options$postHocCorrectionTukey))      return("tukey")
+    if (isTRUE(options$postHocCorrectionBonferroni)) return("bonferroni")
+    if (isTRUE(options$postHocCorrectionHolm))       return("holm")
+    if (isTRUE(options$postHocCorrectionSidak))      return("bonferroni")
     "holm"
 }
 

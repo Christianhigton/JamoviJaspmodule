@@ -19,10 +19,10 @@ analyses:
     menuGroup: JASP Enhanced ANOVA
     menuTitle: ANOVA
     description: >
-      jamovi-native shell for the full JASP classical ANOVA option surface,
-      including planned feature parity for corrections, contrasts, post hoc
-      tests, plots, marginal means, simple effects, nonparametric alternatives,
-      export functions, APA reporting, teaching mode, and reproducibility.
+      Classical ANOVA matching the JASP ANOVA analysis, including Type III SS,
+      corrections, contrasts, post hoc tests, plots, marginal means, simple
+      effects, nonparametric alternatives, order-restricted hypotheses, and
+      export.
   - title: JASP Enhanced Repeated Measures ANOVA
     name: enhancedRepeatedMeasuresAnova
     ns: jaspEnhancedAnova
@@ -30,12 +30,10 @@ analyses:
     menuGroup: JASP Enhanced ANOVA
     menuTitle: Repeated Measures ANOVA
     description: >
-      jamovi-native shell for the full JASP repeated measures ANOVA option
-      surface, including repeated measures factor construction, model builder,
-      sphericity testing, contrasts, post hoc tests, plots, marginal means,
-      simple effects, nonparametric repeated measures procedures, export
-      functions, APA reporting, teaching mode, publication mode, diagnostics,
-      and reproducibility.
+      Repeated Measures ANOVA matching the JASP RM ANOVA analysis, including
+      multi-factor within-subject designs, sphericity corrections, post hoc
+      tests, contrasts, plots, marginal means, simple effects, nonparametric
+      alternatives, order-restricted hypotheses, and Bayesian model comparison.
 usesNative: true
 minApp: 1.0.8
 
