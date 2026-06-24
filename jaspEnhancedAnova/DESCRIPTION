@@ -11,4 +11,5 @@ License: GPL (>= 2)
 Encoding: UTF-8
 LazyData: true
 Imports: jmvcore (>= 0.8.5), R6
-Suggests: car, emmeans, effectsize, multcomp, rstatix, afex
+Suggests: car, emmeans, effectsize, multcomp, rstatix, afex, biotools,
+    mvnormtest, bain, BayesFactor

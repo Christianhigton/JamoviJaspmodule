@@ -10,7 +10,7 @@ date: '1970-01-01'
 type: R
 description: >-
   jamovi-native ANOVA module focused on the currently implemented classical
-  ANOVA and repeated measures ANOVA workflows.
+  ANOVA, repeated measures ANOVA, ANCOVA, and MANCOVA workflows.
 analyses:
   - title: JASP Enhanced ANOVA
     name: enhancedAnova
@@ -34,6 +34,26 @@ analyses:
       multi-factor within-subject designs, sphericity corrections, post hoc
       tests, contrasts, plots, marginal means, simple effects, nonparametric
       alternatives, order-restricted hypotheses, and Bayesian model comparison.
+  - title: JASP Enhanced ANCOVA
+    name: enhancedAncova
+    ns: jaspEnhancedAnova
+    category: analyses
+    menuGroup: JASP Enhanced ANOVA
+    menuTitle: ANCOVA
+    description: >
+      Classical ANCOVA matching the JASP ANCOVA analysis, including covariates,
+      Type III SS, assumptions, post hoc tests, plots, marginal means, simple
+      effects, order-restricted hypotheses, and export.
+  - title: JASP Enhanced MANCOVA
+    name: enhancedManova
+    ns: jaspEnhancedAnova
+    category: analyses
+    menuGroup: JASP Enhanced ANOVA
+    menuTitle: MANCOVA
+    description: >
+      Multivariate ANCOVA matching the JASP MANOVA workflow with covariate
+      support, including Pillai, Wilks, Hotelling-Lawley, Roy, univariate
+      follow-up tables, and assumption checks.
 usesNative: true
 minApp: 1.0.8
 

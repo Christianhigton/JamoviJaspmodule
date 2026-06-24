@@ -1,5 +1,5 @@
-name: enhancedRepeatedMeasuresAnova
-title: JASP Enhanced Repeated Measures ANOVA
+name: enhancedAncova
+title: JASP Enhanced ANCOVA
 jus: '2.0'
 stage: 0
 compilerMode: tame
@@ -12,41 +12,35 @@ children:
     persistentItems: false
     children:
       - type: TargetLayoutBox
-        label: Repeated Measures Cells
+        label: Dependent Variable
         children:
           - type: VariablesListBox
-            name: repeatedMeasuresCells
+            name: dependent
+            maxItemCount: 1
+            height: small
             isTarget: true
       - type: TargetLayoutBox
-        label: Between Subject Factors
+        label: Fixed Factors
         children:
           - type: VariablesListBox
-            name: betweenSubjectFactors
+            name: fixedFactors
+            height: large
             isTarget: true
       - type: TargetLayoutBox
         label: Covariates
         children:
           - type: VariablesListBox
             name: covariates
+            height: normal
             isTarget: true
-  - type: CollapseBox
-    label: Repeated Measures Factors
-    collapsed: false
-    children:
-      - type: Label
-        label: Factor name
-      - type: TextBox
-        name: rmFactorNames
-        format: string
-        label: Factor name
-      - type: TextBox
-        name: rmFactorLevels
-        format: string
-        label: Factor levels (comma-separated)
-      - type: TextBox
-        name: rmFactorSpec
-        format: string
-        label: Multi-factor spec (e.g., A:L1,L2;B:L1,L2,L3)
+      - type: TargetLayoutBox
+        label: WLS Weights
+        children:
+          - type: VariablesListBox
+            name: wlsWeights
+            maxItemCount: 1
+            height: small
+            isTarget: true
   - type: CollapseBox
     label: Display
     collapsed: false
@@ -61,21 +55,14 @@ children:
           - type: LayoutBox
             margin: large
             children:
-              - type: CheckBox
-                name: effectSizeOmegaSquared
-                label: ω²
-              - type: CheckBox
-                name: effectSizePartialOmegaSquared
-                label: partial ω²
-              - type: CheckBox
-                name: effectSizeEtaSquared
-                label: η²
-              - type: CheckBox
-                name: effectSizePartialEtaSquared
-                label: partial η²
-              - type: CheckBox
-                name: effectSizeGeneralEtaSquared
-                label: general η²
+              - type: LayoutBox
+                children:
+                  - { type: CheckBox, name: effectSizeOmegaSquared,       label: "ω²"        }
+                  - { type: CheckBox, name: effectSizePartialOmegaSquared, label: "partial ω²"}
+              - type: LayoutBox
+                children:
+                  - { type: CheckBox, name: effectSizeEtaSquared,          label: "η²"        }
+                  - { type: CheckBox, name: effectSizePartialEtaSquared,   label: "partial η²"}
           - type: CheckBox
             name: effectSizeCi
             label: Confidence intervals
@@ -88,52 +75,48 @@ children:
       - type: CheckBox
         name: vovkSellke
         label: Vovk-Sellke maximum p-ratio
+  - type: VariableSupplier
+    persistentItems: false
+    stretchFactor: 1
+    children:
+      - type: TargetLayoutBox
+        label: Random Factors
+        children:
+          - type: VariablesListBox
+            name: randomFactors
+            isTarget: true
   - type: CollapseBox
     label: Model
     collapsed: true
     children:
-      - type: Label
-        label: Repeated Measures Components
-      - type: TextBox
-        name: withinModelTerms
-        format: string
-        label: Model Terms
-      - type: Label
-        label: Between Subjects Components
-      - type: TextBox
-        name: betweenModelTerms
-        format: string
-        label: Model terms
       - type: ComboBox
         name: sumOfSquares
         label: Sum of squares
-      - type: CheckBox
-        name: poolErrorTermFollowup
-        label: Pool error term for follow-up tests
+      - type: TextBox
+        name: modelTerms
+        label: Model terms
+        format: string
   - type: CollapseBox
     label: Assumption Checks
     collapsed: true
     children:
       - type: CheckBox
-        name: sphericityTests
-        label: Sphericity tests
+        name: homogeneityTests
+        label: Homogeneity tests
       - type: LayoutBox
         margin: large
         children:
           - type: Label
-            label: Sphericity corrections
+            label: Homogeneity corrections
           - type: CheckBox
-            name: sphericityCorrectionNone
+            name: homogeneityCorrectionNone
             label: None
           - type: CheckBox
-            name: sphericityCorrectionGreenhouseGeisser
-            label: Greenhouse-Geisser
+            name: homogeneityCorrectionBrown
+            label: Brown-Forsythe
           - type: CheckBox
-            name: sphericityCorrectionHuynhFeldt
-            label: Huynh-Feldt
-      - type: CheckBox
-        name: homogeneityTests
-        label: Homogeneity tests
+            name: homogeneityCorrectionWelch
+            label: Welch
       - type: CheckBox
         name: qqPlot
         label: Q-Q plot residuals
@@ -196,6 +179,9 @@ children:
           - type: CheckBox
             name: restrictedMarginalMeanForAllModels
             label: Marginal means
+          - type: CheckBox
+            name: restrictedInformedHypothesisTestForAllModels
+            label: Informed hypothesis tests
       - type: LayoutBox
         margin: large
         children:
@@ -226,6 +212,9 @@ children:
         children:
           - type: Label
             label: Uncertainty quantification
+          - type: ComboBox
+            name: restrictedHeterogeneityCorrection
+            label: Heterogeneity correction
           - type: CheckBox
             name: restrictedBootstrap
             label: Bootstrapping
@@ -243,10 +232,6 @@ children:
     label: Post Hoc Tests
     collapsed: true
     children:
-      - type: TextBox
-        name: postHocRmTerms
-        format: string
-        label: Repeated Measures Terms
       - type: VariableSupplier
         suggested:
           - nominal
@@ -259,32 +244,55 @@ children:
               - type: VariablesListBox
                 name: postHocTerms
                 isTarget: true
-      - type: CheckBox
-        name: postHocEffectSize
-        label: Effect size
-      - type: CheckBox
-        name: poolErrorTermFollowup
-        label: Pool error term for follow-up tests
-      - type: CheckBox
-        name: postHocConditionalTable
-        label: Conditional comparisons for interactions
+      - type: LayoutBox
+        margin: large
+        children:
+          - type: Label
+            label: Type
+          - type: CheckBox
+            name: postHocTypeStandard
+            label: Standard
+            children:
+              - type: CheckBox
+                name: postHocTypeStandardBootstrap
+                label: From
+                children:
+                  - type: TextBox
+                    name: postHocTypeStandardBootstrapSamples
+                    format: number
+                    label: bootstraps
+              - type: CheckBox
+                name: postHocTypeStandardEffectSize
+                label: Effect size
+              - type: CheckBox
+                name: postHocConditionalTable
+                label: Conditional comparisons for interactions
+          - type: CheckBox
+            name: postHocTypeGames
+            label: Games-Howell
+          - type: CheckBox
+            name: postHocTypeDunnet
+            label: Dunnett
       - type: LayoutBox
         margin: large
         children:
           - type: Label
             label: Correction
           - type: CheckBox
-            name: postHocCorrectionHolm
-            label: Holm
-          - type: CheckBox
-            name: postHocCorrectionBonferroni
-            label: Bonferroni
-          - type: CheckBox
             name: postHocCorrectionTukey
             label: Tukey
           - type: CheckBox
             name: postHocCorrectionScheffe
             label: Scheffé
+          - type: CheckBox
+            name: postHocCorrectionBonferroni
+            label: Bonferroni
+          - type: CheckBox
+            name: postHocCorrectionHolm
+            label: Holm
+          - type: CheckBox
+            name: postHocCorrectionSidak
+            label: Šidák
           - type: CheckBox
             name: postHocCorrectionFdr
             label: FDR (Benjamini-Hochberg)
@@ -323,11 +331,6 @@ children:
           - type: VariablesListBox
             name: restrictedMarginalMeanTerms
             isTarget: true
-  - type: LayoutBox
-    margin: large
-    children:
-      - type: ComboBox
-        name: restrictedHeterogeneityCorrection
   - type: CollapseBox
     label: Descriptive Plots
     collapsed: true
@@ -359,13 +362,6 @@ children:
                 name: descriptivePlotSeparatePlot
                 maxItemCount: 1
                 isTarget: true
-      - type: TextBox
-        name: descriptivePlotYAxisLabel
-        format: string
-        label: Label y-axis
-      - type: CheckBox
-        name: descriptivePlotErrorBarPooled
-        label: Average across unused RM factors
       - type: LayoutBox
         margin: large
         children:
@@ -383,9 +379,6 @@ children:
                 format: number
                 suffix: '%'
                 width: small
-          - type: CheckBox
-            name: normalizeErrorBarsDescriptives
-            label: Normalize error bars
   - type: CollapseBox
     label: Bar Plots
     collapsed: true
@@ -410,16 +403,6 @@ children:
                 name: barPlotSeparatePlots
                 maxItemCount: 1
                 isTarget: true
-      - type: TextBox
-        name: labelYAxisTwo
-        format: string
-        label: Label y-axis
-      - type: CheckBox
-        name: usePooledStandErrorCITwo
-        label: Average across unused RM factors
-      - type: CheckBox
-        name: normalizeErrorBarsBarplot
-        label: Normalize error bars
       - type: LayoutBox
         margin: large
         children:
@@ -464,18 +447,13 @@ children:
                 name: rainCloudSeparatePlots
                 maxItemCount: 1
                 isTarget: true
-      - type: TextBox
-        name: rainCloudYAxisLabel
-        format: string
-        label: Label y-axis
+      - type: CheckBox
+        name: rainCloudHorizontalDisplay
+        label: Horizontal display
   - type: CollapseBox
     label: Marginal Means
     collapsed: true
     children:
-      - type: TextBox
-        name: marginalMeanRmTerms
-        format: string
-        label: Repeated Measures Terms
       - type: VariableSupplier
         suggested:
           - nominal
@@ -502,9 +480,6 @@ children:
       - type: ComboBox
         name: marginalMeanCiCorrection
         label: Confidence interval adjustment
-      - type: CheckBox
-        name: poolErrorTermFollowup
-        label: Pool error term for follow-up tests
   - type: CollapseBox
     label: Simple Main Effects
     collapsed: true
@@ -536,9 +511,6 @@ children:
                 name: simpleMainEffectModeratorFactorTwo
                 maxItemCount: 1
                 isTarget: true
-      - type: CheckBox
-        name: simpleMainEffectErrorTermPooled
-        label: Pool error terms
   - type: CollapseBox
     label: Nonparametrics
     collapsed: true
@@ -550,22 +522,29 @@ children:
         persistentItems: false
         children:
           - type: TargetLayoutBox
-            label: RM Factor
+            label: Kruskal-Wallis Test
             children:
               - type: VariablesListBox
-                name: friedmanWithinFactor
-                maxItemCount: 1
-                isTarget: true
-          - type: TargetLayoutBox
-            label: Optional Grouping Factor
-            children:
-              - type: VariablesListBox
-                name: friedmanBetweenFactor
-                maxItemCount: 1
+                name: kruskalWallisFactors
                 isTarget: true
       - type: CheckBox
-        name: conoverTest
-        label: Conover's post hoc tests
+        name: kruskalEffectSizeEstimates
+        label: Estimates of effect size
+        children:
+          - type: CheckBox
+            name: kruskalEpsilon
+            label: ε²
+          - type: CheckBox
+            name: kruskalEta
+            label: η²
+          - type: TextBox
+            name: kruskalCiLevel
+            format: number
+            suffix: '%'
+            label: Confidence
+      - type: CheckBox
+        name: postHocTypeDunn
+        label: Dunn's post hoc tests
   - type: CollapseBox
     label: Export
     collapsed: true

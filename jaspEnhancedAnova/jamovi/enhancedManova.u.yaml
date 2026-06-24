@@ -1,0 +1,99 @@
+---
+name: enhancedManova
+title: JASP Enhanced MANCOVA
+jus: '2.0'
+stage: 0
+compilerMode: tame
+children:
+  - type: VariableSupplier
+    suggested:
+      - continuous
+      - nominal
+      - ordinal
+    persistentItems: false
+    children:
+      - type: TargetLayoutBox
+        label: Dependent Variables
+        children:
+          - type: VariablesListBox
+            name: dependent
+            height: large
+            isTarget: true
+      - type: TargetLayoutBox
+        label: Fixed Factors
+        children:
+          - type: VariablesListBox
+            name: fixedFactors
+            height: normal
+            isTarget: true
+      - type: TargetLayoutBox
+        label: Covariates
+        children:
+          - type: VariablesListBox
+            name: covariates
+            height: normal
+            isTarget: true
+  - type: VariableSupplier
+    persistentItems: false
+    stretchFactor: 1
+    children:
+      - type: TargetLayoutBox
+        label: Random Factors
+        children:
+          - type: VariablesListBox
+            name: randomFactors
+            isTarget: true
+  - type: CollapseBox
+    label: Model
+    collapsed: false
+    children:
+      - type: TextBox
+        name: modelTerms
+        label: Model terms
+        format: string
+      - type: CheckBox
+        name: includeIntercept
+        label: Include intercept
+  - type: CollapseBox
+    label: Multivariate Tests
+    collapsed: false
+    children:
+      - type: CheckBox
+        name: testPillai
+        label: Pillai
+      - type: CheckBox
+        name: testWilks
+        label: Wilks
+      - type: CheckBox
+        name: testHotellingLawley
+        label: Hotelling-Lawley
+      - type: CheckBox
+        name: testRoy
+        label: Roy
+  - type: CollapseBox
+    label: Display
+    collapsed: true
+    children:
+      - type: CheckBox
+        name: anovaTables
+        label: Univariate ANOVA tables
+      - type: CheckBox
+        name: descriptives
+        label: Descriptive statistics
+      - type: CheckBox
+        name: vovkSellke
+        label: Vovk-Sellke maximum p-ratio
+      - type: CheckBox
+        name: apaReport
+        label: APA reporting
+  - type: CollapseBox
+    label: Assumption Checks
+    collapsed: true
+    children:
+      - type: CheckBox
+        name: boxMTest
+        label: Box's M test
+      - type: CheckBox
+        name: shapiroTest
+        label: Multivariate Shapiro-Wilk test
+...

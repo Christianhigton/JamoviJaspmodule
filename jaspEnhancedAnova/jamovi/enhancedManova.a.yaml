@@ -1,0 +1,36 @@
+---
+name: enhancedManova
+title: JASP Enhanced MANCOVA
+menuGroup: JASP Enhanced ANOVA
+menuTitle: MANCOVA
+version: '0.1.0'
+jas: '1.2'
+description:
+    main: >
+        True MANCOVA matching the JASP MANOVA workflow with covariate support,
+        including multivariate omnibus tests, univariate follow-up ANCOVA
+        tables, assumption checks, effect-size-oriented reporting, and
+        reproducibility output.
+options:
+    - { name: data, type: Data }
+
+    - { name: dependent, title: Dependent Variables, type: Variables, suggested: [continuous], permitted: [numeric] }
+    - { name: fixedFactors, title: Fixed Factors, type: Variables, suggested: [nominal, ordinal], permitted: [factor] }
+    - { name: randomFactors, title: Random Factors, type: Variables, suggested: [nominal, ordinal], permitted: [factor] }
+    - { name: covariates, title: Covariates, type: Variables, suggested: [continuous], permitted: [numeric] }
+
+    - { name: modelTerms, title: Model terms, type: String, default: '' }
+    - { name: includeIntercept, title: Include intercept, type: Bool, default: true }
+
+    - { name: testPillai, title: Pillai, type: Bool, default: true }
+    - { name: testWilks, title: Wilks, type: Bool, default: true }
+    - { name: testHotellingLawley, title: Hotelling-Lawley, type: Bool, default: true }
+    - { name: testRoy, title: Roy, type: Bool, default: false }
+
+    - { name: anovaTables, title: Univariate ANOVA tables, type: Bool, default: true }
+    - { name: vovkSellke, title: Vovk-Sellke maximum p-ratio, type: Bool, default: false }
+    - { name: boxMTest, title: Box's M test, type: Bool, default: false }
+    - { name: shapiroTest, title: Multivariate Shapiro-Wilk test, type: Bool, default: false }
+    - { name: descriptives, title: Descriptive statistics, type: Bool, default: false }
+    - { name: apaReport, title: APA reporting, type: Bool, default: true }
+...

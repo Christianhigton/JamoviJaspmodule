@@ -1,0 +1,213 @@
+---
+name: enhancedAncova
+title: JASP Enhanced ANCOVA
+menuGroup: JASP Enhanced ANOVA
+menuTitle: ANCOVA
+version: '0.1.0'
+jas: '1.2'
+description:
+    main: >
+        Classical ANCOVA matching the JASP ANCOVA analysis, including
+        fixed factors, random factors, covariates, WLS weights, model terms,
+        Type III SS, assumptions, contrasts, post hoc tests, plots, marginal
+        means, simple effects, nonparametric alternatives,
+        order-restricted hypotheses, and export.
+options:
+    - { name: data, type: Data }
+
+    # Core variable assignment
+    - { name: dependent,    title: Dependent Variable, type: Variable,  suggested: [continuous],        permitted: [numeric] }
+    - { name: fixedFactors, title: Fixed Factors,      type: Variables, suggested: [nominal, ordinal],  permitted: [factor] }
+    - { name: randomFactors,title: Random Factors,     type: Variables, suggested: [nominal, ordinal],  permitted: [factor] }
+    - { name: covariates,   title: Covariates,         type: Variables, suggested: [continuous],        permitted: [numeric] }
+    - { name: wlsWeights,   title: WLS Weights,        type: Variable,  suggested: [continuous],        permitted: [numeric] }
+
+    # Display
+    - { name: descriptives,                   title: Descriptive statistics,         type: Bool, default: false }
+    - { name: effectSizeEstimates,             title: Estimates of effect size,       type: Bool, default: false }
+    - { name: effectSizeOmegaSquared,          title: "ω²",                           type: Bool, default: true  }
+    - { name: effectSizePartialOmegaSquared,   title: "partial ω²",                   type: Bool, default: false }
+    - { name: effectSizeEtaSquared,            title: "η²",                           type: Bool, default: false }
+    - { name: effectSizePartialEtaSquared,     title: "partial η²",                   type: Bool, default: false }
+    - { name: effectSizeCi,                    title: Confidence intervals,            type: Bool, default: false }
+    - { name: effectSizeCiLevel,               title: CI level,                       type: Number, min: 50, max: 99.9, default: 95 }
+    - { name: vovkSellke,                      title: Vovk-Sellke maximum p-ratio,    type: Bool, default: false }
+
+    # Model
+    - name: sumOfSquares
+      title: Sum of squares
+      type: List
+      options:
+        - { name: type1, title: "Type Ⅰ" }
+        - { name: type2, title: "Type Ⅱ" }
+        - { name: type3, title: "Type Ⅲ" }
+      default: type3
+    - { name: modelTerms, title: Model terms, type: String, default: '' }
+
+    # Assumption Checks
+    - { name: homogeneityTests,           title: Homogeneity tests,    type: Bool, default: false }
+    - { name: homogeneityCorrectionNone,  title: None,                 type: Bool, default: true  }
+    - { name: homogeneityCorrectionBrown, title: Brown-Forsythe,       type: Bool, default: false }
+    - { name: homogeneityCorrectionWelch, title: Welch,                type: Bool, default: false }
+    - { name: qqPlot,                     title: Q-Q plot residuals,   type: Bool, default: false }
+    - { name: qqPlotCi,                   title: Confidence interval,  type: Bool, default: false }
+    - { name: qqPlotCiLevel,              title: CI level,             type: Number, min: 50, max: 99.9, default: 95 }
+
+    # Contrasts
+    - name: contrastType
+      title: Contrast type
+      type: List
+      options:
+        - { name: none,       title: None       }
+        - { name: deviation,  title: Deviation  }
+        - { name: simple,     title: Simple     }
+        - { name: difference, title: Difference }
+        - { name: helmert,    title: Helmert    }
+        - { name: repeated,   title: Repeated   }
+        - { name: polynomial, title: Polynomial }
+      default: none
+    - { name: contrastCi,         title: Confidence intervals,      type: Bool,   default: true }
+    - { name: contrastCiLevel,    title: CI level,                  type: Number, min: 50, max: 99.9, default: 95 }
+    - { name: contrastEffectSize, title: "Effect size (Cohen's d)", type: Bool,   default: false }
+
+    # Order Restricted Hypotheses
+    - { name: restrictedSyntax,                              title: Hypothesis syntax,            type: String, default: '' }
+    - { name: restrictedInterceptInclusion,                  title: Include intercept,            type: Bool, default: false }
+    - { name: restrictedAvailableCoefficients,               title: Show available coefficients,  type: Bool, default: false }
+    - { name: restrictedModelSummaryForAllModels,            title: Model summary,                type: Bool, default: false }
+    - { name: restrictedMarginalMeanForAllModels,            title: Marginal means,               type: Bool, default: false }
+    - { name: restrictedInformedHypothesisTestForAllModels,  title: Informed hypothesis tests,    type: Bool, default: false }
+    - name: restrictedModelComparison
+      title: Add to comparison
+      type: List
+      options:
+        - { name: complement,    title: Complement model    }
+        - { name: unconstrained, title: Unconstrained model }
+        - { name: none,          title: None                }
+      default: complement
+    - { name: restrictedModelComparisonWeights,              title: Add weight ratios,            type: Bool, default: true  }
+    - name: restrictedModelComparisonReference
+      title: Reference model
+      type: List
+      options:
+        - { name: complement,    title: Complement model    }
+        - { name: unconstrained, title: Unconstrained model }
+      default: complement
+    - { name: restrictedModelComparisonMatrix,                    title: Relative weights matrix,      type: Bool, default: false }
+    - { name: restrictedModelComparisonCoefficients,              title: Compare model coefficients,   type: Bool, default: false }
+    - { name: restrictedModelComparisonCoefficientsHighlight,     title: Highlight active restrictions,type: Bool, default: true  }
+    - name: restrictedHeterogeneityCorrection
+      title: Heterogeneity correction
+      type: List
+      options:
+        - { name: none,         title: None  }
+        - { name: huberWhite0,  title: HC0   }
+        - { name: huberWhite1,  title: HC1   }
+        - { name: huberWhite2,  title: HC2   }
+        - { name: huberWhite3,  title: HC3   }
+        - { name: huberWhite4,  title: HC4   }
+        - { name: huberWhite4m, title: HC4m  }
+        - { name: huberWhite5,  title: HC5   }
+      default: none
+    - { name: restrictedBootstrap,        title: Bootstrapping,         type: Bool,    default: false }
+    - { name: restrictedBootstrapSamples, title: Samples,               type: Integer, min: 100, max: 100000, default: 1000 }
+    - { name: restrictedBootstrapCiLevel, title: Confidence intervals,  type: Number,  min: 50, max: 99.9, default: 95 }
+    - { name: restrictedMarginalMeanTerms, title: Restricted marginal mean terms, type: Variables, suggested: [nominal, ordinal], permitted: [factor] }
+
+    # Post Hoc Tests
+    - { name: postHocTerms,                       title: Post hoc terms,                          type: Variables, suggested: [nominal, ordinal], permitted: [factor] }
+    - { name: postHocTypeStandard,                title: Standard,                                type: Bool, default: true  }
+    - { name: postHocTypeStandardBootstrap,       title: From bootstraps,                         type: Bool, default: false }
+    - { name: postHocTypeStandardBootstrapSamples,title: Bootstrap samples,                       type: Integer, min: 100, max: 100000, default: 1000 }
+    - { name: postHocTypeStandardEffectSize,      title: Effect size,                             type: Bool, default: false }
+    - { name: postHocConditionalTable,            title: Conditional comparisons for interactions, type: Bool, default: false }
+    - { name: postHocTypeGames,                   title: Games-Howell,                            type: Bool, default: false }
+    - { name: postHocTypeDunnet,                  title: Dunnett,                                 type: Bool, default: false }
+    - { name: postHocCorrectionTukey,             title: Tukey,                                   type: Bool, default: true  }
+    - { name: postHocCorrectionScheffe,           title: "Scheffé",                          type: Bool, default: false }
+    - { name: postHocCorrectionBonferroni,        title: Bonferroni,                              type: Bool, default: false }
+    - { name: postHocCorrectionHolm,              title: Holm,                                    type: Bool, default: false }
+    - { name: postHocCorrectionSidak,             title: "Šidák",                       type: Bool, default: false }
+    - { name: postHocCorrectionFdr,               title: FDR (Benjamini-Hochberg),                type: Bool, default: false }
+    - { name: postHocCi,                          title: Confidence intervals,                    type: Bool, default: true  }
+    - { name: postHocCiLevel,                     title: CI level,                                type: Number, min: 50, max: 99.9, default: 95 }
+    - { name: postHocSignificanceFlag,            title: Flag significant comparisons,            type: Bool, default: false }
+    - { name: postHocLetterTable,                 title: Letter-based grouping table,             type: Bool, default: false }
+    - { name: postHocLetterAlpha,                 title: Alpha level,                             type: Number, min: 0, max: 1, default: 0.05 }
+
+    # Descriptive Plots
+    - { name: descriptivePlotHorizontalAxis, title: Horizontal Axis,  type: Variable, suggested: [nominal, ordinal], permitted: [factor] }
+    - { name: descriptivePlotSeparateLines,  title: Separate Lines,   type: Variable, suggested: [nominal, ordinal], permitted: [factor] }
+    - { name: descriptivePlotSeparatePlot,   title: Separate Plots,   type: Variable, suggested: [nominal, ordinal], permitted: [factor] }
+    - { name: descriptivePlotErrorBar,       title: Error bars,       type: Bool, default: true }
+    - name: descriptivePlotErrorBarType
+      title: Error bar type
+      type: List
+      options:
+        - { name: ci, title: Confidence interval }
+        - { name: se, title: Standard error      }
+      default: ci
+    - { name: descriptivePlotCiLevel, title: CI level, type: Number, min: 50, max: 99.9, default: 95 }
+
+    # Bar Plots
+    - { name: barPlotHorizontalAxis, title: Horizontal Axis, type: Variable, suggested: [nominal, ordinal], permitted: [factor] }
+    - { name: barPlotSeparatePlots,  title: Separate Plots,  type: Variable, suggested: [nominal, ordinal], permitted: [factor] }
+    - { name: barPlotErrorBars,      title: Error bars,      type: Bool, default: true  }
+    - name: barPlotErrorBarType
+      title: Error bar type
+      type: List
+      options:
+        - { name: ci, title: Confidence interval }
+        - { name: se, title: Standard error      }
+      default: ci
+    - { name: barPlotCiInterval,         title: CI level,               type: Number, min: 50, max: 99.9, default: 95 }
+    - { name: barPlotHorizontalZeroFix,  title: Fix horizontal axis to 0, type: Bool, default: true }
+
+    # Raincloud Plots
+    - { name: rainCloudHorizontalAxis,   title: Horizontal Axis,    type: Variable, suggested: [nominal, ordinal], permitted: [factor] }
+    - { name: rainCloudSeparatePlots,    title: Separate Plots,     type: Variable, suggested: [nominal, ordinal], permitted: [factor] }
+    - { name: rainCloudHorizontalDisplay,title: Horizontal display, type: Bool, default: false }
+
+    # Marginal Means
+    - { name: marginalMeanTerms,         title: Marginal means terms,           type: Variables, suggested: [nominal, ordinal], permitted: [factor] }
+    - { name: marginalMeanBootstrap,     title: From bootstraps,                type: Bool,    default: false }
+    - { name: marginalMeanBootstrapSamples, title: Bootstrap samples,           type: Integer, min: 100, max: 100000, default: 1000 }
+    - { name: marginalMeanComparedToZero,title: Compare marginal means to 0,   type: Bool,    default: false }
+    - name: marginalMeanCiCorrection
+      title: Confidence interval adjustment
+      type: List
+      options:
+        - { name: none,        title: None        }
+        - { name: bonferroni,  title: Bonferroni  }
+        - { name: sidak,       title: "Šidák" }
+      default: none
+
+    # Simple Main Effects
+    - { name: simpleMainEffectFactor,              title: Simple Effect Factor, type: Variable, suggested: [nominal, ordinal], permitted: [factor] }
+    - { name: simpleMainEffectModeratorFactorOne,  title: Moderator Factor 1,  type: Variable, suggested: [nominal, ordinal], permitted: [factor] }
+    - { name: simpleMainEffectModeratorFactorTwo,  title: Moderator Factor 2,  type: Variable, suggested: [nominal, ordinal], permitted: [factor] }
+
+    # Nonparametrics
+    - { name: kruskalWallisFactors,       title: Kruskal-Wallis factors,     type: Variables, suggested: [nominal, ordinal], permitted: [factor] }
+    - { name: kruskalEffectSizeEstimates, title: Estimates of effect size,   type: Bool, default: false }
+    - { name: kruskalEpsilon,             title: "ε²",             type: Bool, default: true  }
+    - { name: kruskalEta,                 title: "η²",             type: Bool, default: false }
+    - { name: kruskalCiLevel,             title: Confidence,                 type: Number, min: 50, max: 99.9, default: 95 }
+    - { name: postHocTypeDunn,            title: "Dunn's post hoc tests",    type: Bool, default: false }
+
+    # Export
+    - { name: residualsSavedToData,       title: Append residuals to data,   type: Bool,   default: false }
+    - { name: residualsSavedToDataColumn, title: Column name,                type: String, default: 'residuals'   }
+    - name: residualsSavedToDataType
+      title: Residuals type
+      type: List
+      options:
+        - { name: raw,      title: Raw          }
+        - { name: standard, title: Standardized }
+        - { name: student,  title: Studentized  }
+      default: raw
+    - { name: predictionsSavedToData,       title: Append predictions to data, type: Bool,   default: false }
+    - { name: predictionsSavedToDataColumn, title: Column name,                type: String, default: 'predictions' }
+    - { name: residsOV,   title: Residuals,      type: Output }
+    - { name: predictOV,  title: Predicted values, type: Output }
+...

@@ -1,0 +1,15 @@
+---
+name: enhancedManova
+title: JASP Enhanced MANCOVA
+jrs: '1.1'
+items:
+    - { name: status, title: Implementation Status, type: Html }
+    - { name: modelSummary, title: Model Summary, type: Html }
+    - { name: multivariateTests, title: Multivariate Tests, type: Html }
+    - { name: univariateTables, title: Univariate Follow-up Tables, type: Html, visible: (anovaTables) }
+    - { name: descriptivesSection, title: Descriptive Statistics, type: Html, visible: (descriptives) }
+    - { name: assumptionsSection, title: Assumption Checks, type: Html }
+    - { name: apa, title: APA Reporting, type: Html, visible: (apaReport) }
+    - { name: reproducibility, title: Reproducibility, type: Html }
+    - { name: about, title: About and Citation, type: Html }
+...

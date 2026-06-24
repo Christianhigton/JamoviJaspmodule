@@ -1,4 +1,4 @@
-﻿#' @importFrom jmvcore .
+#' @importFrom jmvcore .
 enhancedAnovaClass <- if (requireNamespace("jmvcore", quietly = TRUE)) R6::R6Class(
     "enhancedAnovaClass",
     inherit = enhancedAnovaBase,
@@ -179,7 +179,7 @@ enhancedAnovaClass <- if (requireNamespace("jmvcore", quietly = TRUE)) R6::R6Cla
 .je_fit_and_anova <- function(formula, dat, factors, weights) {
     # Fit with sum-to-zero contrasts so car::Anova(type="III") gives correct SS
     contrast_list <- if (length(factors) > 0)
-        setNames(lapply(factors, function(f) stats::contr.sum(nlevels(dat[[f]]))), factors)
+        stats::setNames(lapply(factors, function(f) stats::contr.sum(nlevels(dat[[f]]))), factors)
     else
         list()
 
@@ -436,12 +436,12 @@ enhancedAnovaClass <- if (requireNamespace("jmvcore", quietly = TRUE)) R6::R6Cla
     if (length(factors) == 0) return("<p>Post hoc tests require at least one fixed factor.</p>")
 
     if (requireNamespace("emmeans", quietly = TRUE))
-        return(.je_emmeans_posthoc(fit, factors, options))
+        return(.je_emmeans_posthoc(dat, dep, fit, factors, options))
 
     .je_fallback_posthoc(dat, dep, factors, options)
 }
 
-.je_emmeans_posthoc <- function(fit, factors, options) {
+.je_emmeans_posthoc <- function(dat, dep, fit, factors, options) {
     chunks <- character()
     for (fac in factors) {
         emm <- tryCatch(emmeans::emmeans(fit, specs = fac), error = function(e) NULL)
@@ -902,10 +902,12 @@ enhancedAnovaClass <- if (requireNamespace("jmvcore", quietly = TRUE)) R6::R6Cla
 # ── Bootstrap effect-size CIs ─────────────────────────────────────────────────
 
 .je_bootstrap_effects <- function(dat, dep, factors, covariates, options) {
-    if (!isTRUE(options$bootstrapCi %||% FALSE) && !isTRUE(options$postHocTypeStandardBootstrap %||% FALSE)) return("")
+    opt <- function(name, default = NULL)
+        tryCatch(options[[name]], error = function(e) default)
+    if (!isTRUE(opt("bootstrapCi", FALSE)) && !isTRUE(opt("postHocTypeStandardBootstrap", FALSE))) return("")
     rhs <- c(factors, covariates)
     if (length(rhs) == 0) return("<p>Bootstrap CIs require model terms.</p>")
-    reps    <- max(100L, min(as.integer(options$bootstrapSamples %||% 1000), 2000L))
+    reps    <- max(100L, min(as.integer(opt("bootstrapSamples", 1000)), 2000L))
     formula <- stats::as.formula(paste(dep, "~", paste(rhs, collapse = " * ")))
     obs_eff <- tryCatch({
         f <- .je_fit_and_anova(formula, dat, factors, NULL)
@@ -1003,20 +1005,22 @@ enhancedAnovaClass <- if (requireNamespace("jmvcore", quietly = TRUE)) R6::R6Cla
 # ── Order-restricted + Bayesian ANOVA dispatcher ─────────────────────────────
 
 .je_order_restricted_full <- function(dat, dep, factors, covs, fit, aov_tab, options) {
-    any_active <- isTRUE(options$orderRestricted %||% FALSE) ||
-                  isTRUE(options$modelComparison %||% FALSE)  ||
-                  isTRUE(options$informedHypothesisTests %||% FALSE) ||
-                  nzchar(trimws(as.character(options$restrictedSyntax %||% "")))
+    opt <- function(name, default = NULL)
+        tryCatch(options[[name]], error = function(e) default)
+    any_active <- isTRUE(opt("orderRestricted", FALSE)) ||
+                  isTRUE(opt("modelComparison", FALSE))  ||
+                  isTRUE(opt("informedHypothesisTests", FALSE)) ||
+                  nzchar(trimws(as.character(opt("restrictedSyntax", ""))))
     if (!any_active)
         return("<p>Bayesian / order-restricted hypothesis testing is disabled.</p>")
 
     chunks <- character()
 
     # ── Item 2: Order-restricted inference via bain ───────────────────────────
-    if ((isTRUE(options$orderRestricted %||% FALSE) || isTRUE(options$informedHypothesisTests %||% FALSE)) &&
-        nzchar(trimws(as.character(options$orderRestrictedSyntax %||% options$restrictedSyntax %||% "")))) {
+    if ((isTRUE(opt("orderRestricted", FALSE)) || isTRUE(opt("informedHypothesisTests", FALSE)) || nzchar(trimws(as.character(opt("restrictedSyntax", ""))))) &&
+        nzchar(trimws(as.character(opt("orderRestrictedSyntax", opt("restrictedSyntax", "")))))) {
         chunks <- c(chunks, .je_bain_analysis(fit, options))
-    } else if (isTRUE(options$orderRestricted %||% FALSE) || isTRUE(options$informedHypothesisTests %||% FALSE)) {
+    } else if (isTRUE(opt("orderRestricted", FALSE)) || isTRUE(opt("informedHypothesisTests", FALSE))) {
         chunks <- c(chunks, paste0(
             "<p><strong>Order-restricted inference (bain):</strong> ",
             "enter hypothesis constraints in the syntax field, e.g. ",
@@ -1025,7 +1029,7 @@ enhancedAnovaClass <- if (requireNamespace("jmvcore", quietly = TRUE)) R6::R6Cla
     }
 
     # ── Item 1: Bayesian ANOVA via BayesFactor ────────────────────────────────
-    if (isTRUE(options$modelComparison %||% FALSE))
+    if (isTRUE(opt("modelComparison", FALSE)))
         chunks <- c(chunks, .je_bayesian_anova(dat, dep, factors, covs, options))
 
     paste(chunks, collapse = "")
@@ -1034,7 +1038,9 @@ enhancedAnovaClass <- if (requireNamespace("jmvcore", quietly = TRUE)) R6::R6Cla
 # ── Item 2: bain — order-restricted / informed hypothesis testing ─────────────
 
 .je_bain_analysis <- function(fit, options) {
-    h_raw <- trimws(as.character(options$orderRestrictedSyntax %||% options$restrictedSyntax %||% ""))
+    get_opt <- function(name, default = NULL)
+        tryCatch(options[[name]], error = function(e) default)
+    h_raw <- trimws(as.character(get_opt("orderRestrictedSyntax", get_opt("restrictedSyntax", "")) %||% ""))
     if (!nzchar(h_raw))
         return("<p>No hypothesis syntax provided.</p>")
 
@@ -1242,8 +1248,10 @@ enhancedAnovaClass <- if (requireNamespace("jmvcore", quietly = TRUE)) R6::R6Cla
 }
 
 .je_publication_html <- function(options) {
-    requested <- isTRUE(options$publicationMode %||% FALSE) || isTRUE(options$publicationTables %||% FALSE) ||
-        isTRUE(options$publicationFigures %||% FALSE) || isTRUE(options$exportWord %||% FALSE) || isTRUE(options$exportPdf %||% FALSE)
+    opt <- function(name, default = FALSE)
+        tryCatch(options[[name]], error = function(e) default)
+    requested <- isTRUE(opt("publicationMode")) || isTRUE(opt("publicationTables")) ||
+        isTRUE(opt("publicationFigures")) || isTRUE(opt("exportWord")) || isTRUE(opt("exportPdf"))
     if (!requested) return("<p>Publication mode is disabled.</p>")
     paste0("<p>Publication mode: result tables are produced as copyable HTML. Word/PDF export is handled at the jamovi application level.</p>")
 }

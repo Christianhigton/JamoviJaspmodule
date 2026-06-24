@@ -1,4 +1,4 @@
-﻿#' @importFrom jmvcore .
+#' @importFrom jmvcore .
 enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = TRUE)) R6::R6Class(
     "enhancedRepeatedMeasuresAnovaClass",
     inherit = enhancedRepeatedMeasuresAnovaBase,
@@ -37,6 +37,12 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
             factor_list <- .je_rm_parse_factor_spec(self$options, cells)
             factor_names <- vapply(factor_list, function(f) f$name, character(1))
             rm_levels    <- factor_list[[1]]$levels  # backward-compat for single-factor code
+            within_model_terms <- .je_rm_parse_model_terms(
+                self$options$withinModelTerms, factor_names, full_factorial = TRUE
+            )
+            between_model_terms <- .je_rm_parse_model_terms(
+                self$options$betweenModelTerms, c(between, covs), full_factorial = FALSE
+            )
 
             # Validate cell count
             n_cells_needed <- prod(vapply(factor_list, function(f) length(f$levels), integer(1)))
@@ -53,7 +59,10 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
             for (f in between) wide[[f]] <- as.factor(wide[[f]])
 
             # Fit RM ANOVA with correct within-subject error structure
-            rm_fit <- .je_rm_fit_multi(wide, cells, factor_list, between, covs)
+            rm_fit <- .je_rm_fit_multi(
+                wide, cells, factor_list, between, covs,
+                within_model_terms, between_model_terms, self$options
+            )
 
             if (!is.null(rm_fit$error)) {
                 self$results$status$setContent(paste0(
@@ -85,10 +94,10 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
             contrasts_html <- .je_rm_contrasts(long, rm_levels, rm_fit$lm_fit, self$options)
 
             # Post hoc
-            posthoc_html <- .je_rm_posthoc(long, rm_fit, between, cells, rm_levels, self$options)
+            posthoc_html <- .je_rm_posthoc(long, rm_fit, between, cells, factor_list, rm_levels, self$options)
 
             # Marginal means
-            marginal_html <- .je_rm_marginal_means(long, rm_fit, between, rm_levels, self$options)
+            marginal_html <- .je_rm_marginal_means(long, rm_fit, between, factor_list, rm_levels, self$options)
 
             # Simple effects
             simple_html  <- .je_rm_simple_effects(long, between, self$options)
@@ -121,7 +130,8 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
             ))
 
             self$results$design$setContent(
-                .je_rm_design_html(cells, factor_list, between, covs)
+                .je_rm_design_html(cells, factor_list, between, covs,
+                                   within_model_terms, between_model_terms)
             )
             self$results$modelSummary$setContent(
                 .je_rm_model_html(rm_summary, sphericity_list, self$options)
@@ -143,7 +153,8 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
             self$results$teaching$setContent(.je_rm_teaching_html(self$options))
             self$results$publication$setContent(.je_publication_html(self$options))
             self$results$reproducibility$setContent(
-                .je_rm_repro_html(cells, factor_list, between, covs)
+                .je_rm_repro_html(cells, factor_list, between, covs,
+                                  within_model_terms, between_model_terms)
             )
 
             private$.plotState <- list(long = long, lm_fit = rm_fit$lm_fit)
@@ -260,6 +271,90 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
     list(list(name = nm, levels = lvs))
 }
 
+.je_rm_split_term <- function(term, available) {
+    parts <- trimws(unlist(strsplit(term, "\\*|:|×|x|X")))
+    parts <- parts[nzchar(parts)]
+    if (!length(parts))
+        return(character())
+    matched <- vapply(parts, function(part) {
+        hit <- available[tolower(available) == tolower(part)]
+        if (length(hit)) hit[[1]] else part
+    }, character(1))
+    matched[matched %in% available]
+}
+
+.je_rm_full_factorial_terms <- function(available) {
+    available <- available[nzchar(available)]
+    if (!length(available))
+        return(character())
+    terms <- character()
+    for (k in seq_along(available)) {
+        combos <- utils::combn(available, k, simplify = FALSE)
+        terms <- c(terms, vapply(combos, function(x) paste(x, collapse = ":"), character(1)))
+    }
+    terms
+}
+
+.je_rm_parse_model_terms <- function(value, available, full_factorial = FALSE) {
+    available <- unique(available[nzchar(available)])
+    if (!length(available))
+        return(character())
+
+    raw <- trimws(as.character(value %||% ""))
+    if (!nzchar(raw))
+        return(if (isTRUE(full_factorial)) .je_rm_full_factorial_terms(available) else available)
+
+    pieces <- trimws(unlist(strsplit(raw, "\\n|,|;")))
+    pieces <- pieces[nzchar(pieces)]
+    terms <- vapply(pieces, function(piece) {
+        components <- .je_rm_split_term(piece, available)
+        if (!length(components))
+            return("")
+        paste(unique(components), collapse = ":")
+    }, character(1))
+    terms <- unique(terms[nzchar(terms)])
+    if (!length(terms))
+        return(if (isTRUE(full_factorial)) .je_rm_full_factorial_terms(available) else available)
+    terms
+}
+
+.je_rm_term_components <- function(terms) {
+    unique(unlist(strsplit(terms, ":", fixed = TRUE), use.names = FALSE))
+}
+
+.je_rm_terms_formula <- function(terms) {
+    terms <- terms[nzchar(terms)]
+    if (!length(terms))
+        return("1")
+    paste(terms, collapse = " + ")
+}
+
+.je_rm_option <- function(options, name, default = NULL) {
+    tryCatch(options[[name]], error = function(e) default)
+}
+
+.je_rm_term_factor <- function(long, term) {
+    components <- trimws(unlist(strsplit(term, ":", fixed = TRUE)))
+    components <- components[nzchar(components) & components %in% names(long)]
+    if (!length(components))
+        return(NULL)
+    if (length(components) == 1)
+        return(as.factor(long[[components]]))
+    interaction(long[, components, drop = FALSE], sep = " × ", drop = TRUE)
+}
+
+.je_rm_term_label <- function(term) {
+    gsub(":", " × ", term, fixed = TRUE)
+}
+
+.je_rm_emmeans_specs <- function(term) {
+    components <- trimws(unlist(strsplit(term, ":", fixed = TRUE)))
+    components <- components[nzchar(components)]
+    if (!length(components))
+        return(NULL)
+    stats::as.formula(paste("~", paste(components, collapse = "*")))
+}
+
 # Build a long-format data frame for any number of within-subject factors.
 # factor_list: output of .je_rm_parse_factor_spec()
 # Cells are assumed to be in expand.grid order (last factor varies fastest).
@@ -297,30 +392,34 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
 
 # ── Model fitting ──────────────────────────────────────────────────────────────
 
-.je_rm_fit_multi <- function(wide, cells, factor_list, between, covs) {
+.je_rm_fit_multi <- function(wide, cells, factor_list, between, covs,
+                             within_model_terms = NULL,
+                             between_model_terms = NULL,
+                             options = NULL) {
     long         <- .je_rm_wide_to_long_multi(wide, cells, factor_list, between, covs)
     factor_names <- vapply(factor_list, function(f) f$name, character(1))
 
     for (fn in factor_names) long[[fn]] <- as.factor(long[[fn]])
     for (f  in between)      long[[f]]  <- as.factor(long[[f]])
 
-    # Within-subject part of fixed effects
-    within_rhs <- if (length(factor_names) == 1)
-        factor_names
-    else
-        paste(factor_names, collapse = " * ")
+    within_model_terms <- within_model_terms %||% .je_rm_full_factorial_terms(factor_names)
+    between_model_terms <- between_model_terms %||% c(between, covs)
+    within_model_terms <- within_model_terms[nzchar(within_model_terms)]
+    between_model_terms <- between_model_terms[nzchar(between_model_terms)]
 
-    # Include between-subject factors as crossed with all within effects
-    fixed_rhs <- if (length(between) > 0)
-        paste0(within_rhs, " * (", paste(between, collapse = " * "), ")")
-    else
-        within_rhs
+    crossed_terms <- character()
+    if (length(within_model_terms) && length(between_model_terms)) {
+        crossed_terms <- as.vector(outer(
+            within_model_terms, between_model_terms,
+            FUN = function(a, b) paste(a, b, sep = ":")
+        ))
+    }
+    fixed_terms <- unique(c(within_model_terms, between_model_terms, crossed_terms))
+    fixed_rhs <- .je_rm_terms_formula(fixed_terms)
 
-    # Error() term: Subject/(A) or Subject/(A * B * ...)
-    error_term <- if (length(factor_names) == 1)
-        paste0("Subject/", factor_names)
-    else
-        paste0("Subject/(", paste(factor_names, collapse = " * "), ")")
+    # Error() term follows JASP's Subject/(selected within terms) structure.
+    error_within <- .je_rm_terms_formula(within_model_terms)
+    error_term <- paste0("Subject/(", error_within, ")")
 
     aov_form <- stats::as.formula(paste("Value ~", fixed_rhs, "+ Error(", error_term, ")"))
     aov_fit  <- tryCatch(stats::aov(aov_form, data = long), error = function(e) e)
@@ -336,6 +435,10 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
          long       = long,
          factor_list  = factor_list,
          factor_names = factor_names,
+         within_model_terms = within_model_terms,
+         between_model_terms = between_model_terms,
+         fixed_terms = fixed_terms,
+         formula = aov_form,
          error      = NULL)
 }
 
@@ -346,12 +449,21 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
     strata <- names(s)
     rows <- list()
     for (stratum in strata) {
-        tab <- as.data.frame(s[[stratum]])
-        tab$Term    <- trimws(rownames(tab))
-        tab$Stratum <- stratum
-        rownames(tab) <- NULL
-        rows[[length(rows) + 1]] <- tab
+        tables <- s[[stratum]]
+        if (inherits(tables, "summary.aov"))
+            tables <- unclass(tables)
+        for (tab in tables) {
+            tab <- as.data.frame(tab)
+            if (!nrow(tab))
+                next
+            tab$Term <- trimws(rownames(tab))
+            tab$Stratum <- stratum
+            rownames(tab) <- NULL
+            rows[[length(rows) + 1]] <- tab
+        }
     }
+    if (!length(rows))
+        return(data.frame())
     result <- do.call(rbind, rows)
     # Normalise column names
     names(result) <- gsub("Pr\\(>F\\)", "p", names(result))
@@ -662,7 +774,8 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
 # ── Contrasts ─────────────────────────────────────────────────────────────────
 
 .je_rm_contrasts <- function(long, rm_levels, lm_fit, options) {
-    requested <- options$contrastType != "none" || isTRUE(options$rmCustomContrasts)
+    requested <- options$contrastType != "none" ||
+        isTRUE(.je_rm_option(options, "rmCustomContrasts", FALSE))
     if (!requested) return("<p>No repeated-measures contrasts are enabled.</p>")
 
     n    <- length(rm_levels)
@@ -679,8 +792,8 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
         mats$Simple <- mat
     }
 
-    if (isTRUE(options$rmCustomContrasts)) {
-        custom <- .je_parse_custom_contrasts(options$rmContrastSyntax, n)
+    if (isTRUE(.je_rm_option(options, "rmCustomContrasts", FALSE))) {
+        custom <- .je_parse_custom_contrasts(.je_rm_option(options, "rmContrastSyntax", ""), n)
         if (nrow(custom) > 0) mats$Custom <- t(custom)
     }
 
@@ -733,8 +846,15 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
 
 # ── Post hoc ──────────────────────────────────────────────────────────────────
 
-.je_rm_posthoc <- function(long, rm_fit, between, cells, rm_levels, options) {
-    if (length(.je_chr_vec(options$postHocTerms)) == 0) return("<p>Post hoc tests are disabled.</p>")
+.je_rm_posthoc <- function(long, rm_fit, between, cells, factor_list, rm_levels, options) {
+    factor_names <- vapply(factor_list, function(f) f$name, character(1))
+    rm_terms <- .je_rm_parse_model_terms(
+        .je_rm_option(options, "postHocRmTerms", ""), factor_names, full_factorial = FALSE
+    )
+    between_terms <- .je_chr_vec(options$postHocTerms)
+    between_terms <- between_terms[between_terms %in% between]
+    if (length(rm_terms) == 0 && length(between_terms) == 0)
+        return("<p>Post hoc tests are disabled.</p>")
     chunks  <- character()
     has_emm <- requireNamespace("emmeans", quietly = TRUE) && !is.null(rm_fit$lm_fit)
 
@@ -744,16 +864,21 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
            else "holm"
 
     # ── Within-subject factor pairwise comparisons ────────────────────────────
-    if (TRUE) {
+    for (term in rm_terms) {
+        term_label <- .je_rm_term_label(term)
         if (has_emm) {
-            emm <- tryCatch(emmeans::emmeans(rm_fit$lm_fit, specs = "Within"), error = function(e) NULL)
+            emm <- tryCatch(
+                emmeans::emmeans(rm_fit$lm_fit, specs = .je_rm_emmeans_specs(term)),
+                error = function(e) NULL
+            )
             if (!is.null(emm)) {
                 pw <- tryCatch(as.data.frame(emmeans::contrast(emm, method = "pairwise", adjust = adj)),
                                error = function(e) NULL)
                 if (!is.null(pw)) {
                     out <- .je_rm_pw_table(pw, options)
                     chunks <- c(chunks, paste0(
-                        "<h4>Within-subject pairwise comparisons (", .je_escape(adj), ")</h4>",
+                        "<h4>Within-subject pairwise comparisons - ", .je_escape(term_label),
+                        " (", .je_escape(adj), ")</h4>",
                         .je_table_html(out)
                     ))
                     if (isTRUE(options$postHocEffectSize))
@@ -761,21 +886,25 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
                 }
             }
         } else {
+            group <- .je_rm_term_factor(long, term)
+            if (is.null(group))
+                next
             pw <- tryCatch(
-                stats::pairwise.t.test(long$Value, long$Within, paired = TRUE, p.adjust.method = adj),
+                stats::pairwise.t.test(long$Value, group, paired = TRUE, p.adjust.method = adj),
                 error = function(e) NULL
             )
             if (!is.null(pw))
                 chunks <- c(chunks, paste0(
-                    "<h4>Paired pairwise t-tests (", .je_escape(adj), ") — install emmeans for full output</h4>",
+                    "<h4>Paired pairwise t-tests - ", .je_escape(term_label),
+                    " (", .je_escape(adj), ") - install emmeans for full output</h4>",
                     .je_pairwise_html(pw$p.value)
                 ))
         }
     }
 
     # ── Between-subject factor pairwise comparisons ───────────────────────────
-    if (length(between) > 0 && has_emm) {
-        for (f in between) {
+    if (length(between_terms) > 0 && has_emm) {
+        for (f in between_terms) {
             emm <- tryCatch(emmeans::emmeans(rm_fit$lm_fit, specs = f), error = function(e) NULL)
             if (is.null(emm)) next
             pw <- tryCatch(
@@ -793,8 +922,8 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
     }
 
     # ── Interaction post hoc: Within at each level of Between ─────────────────
-    if (length(between) > 0 && has_emm) {
-        for (f in between) {
+    if (length(between_terms) > 0 && has_emm) {
+        for (f in between_terms) {
             # Within-subject comparisons at each level of the between factor
             emm_w_by_b <- tryCatch(
                 emmeans::emmeans(rm_fit$lm_fit, specs = "Within", by = f),
@@ -906,16 +1035,30 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
 
 # ── Marginal means ────────────────────────────────────────────────────────────
 
-.je_rm_marginal_means <- function(long, rm_fit, between, rm_levels, options) {
-    if (length(.je_chr_vec(options$marginalMeanTerms)) == 0) return("<p>Estimated marginal means are disabled.</p>")
+.je_rm_marginal_means <- function(long, rm_fit, between, factor_list, rm_levels, options) {
+    factor_names <- vapply(factor_list, function(f) f$name, character(1))
+    rm_terms <- .je_rm_parse_model_terms(
+        .je_rm_option(options, "marginalMeanRmTerms", ""), factor_names, full_factorial = FALSE
+    )
+    between_terms <- .je_chr_vec(options$marginalMeanTerms)
+    between_terms <- between_terms[between_terms %in% between]
+    terms <- unique(c(rm_terms, between_terms))
+    if (length(terms) == 0) return("<p>Estimated marginal means are disabled.</p>")
+
+    chunks <- character()
 
     if (requireNamespace("emmeans", quietly = TRUE) && !is.null(rm_fit$lm_fit)) {
-        emm <- tryCatch(emmeans::emmeans(rm_fit$lm_fit, specs = "Within"), error = function(e) NULL)
+        for (term in terms) {
+        emm <- tryCatch(emmeans::emmeans(rm_fit$lm_fit, specs = .je_rm_emmeans_specs(term)), error = function(e) NULL)
         if (!is.null(emm)) {
             ci_level <- (options$effectSizeCiLevel %||% 95) / 100
             em_df    <- as.data.frame(stats::confint(emm, level = ci_level))
+            level_col <- intersect(strsplit(term, ":", fixed = TRUE)[[1]], names(em_df))
+            level_text <- if (length(level_col)) {
+                apply(em_df[, level_col, drop = FALSE], 1, paste, collapse = " × ")
+            } else seq_len(nrow(em_df))
             out <- data.frame(
-                Level = as.character(em_df$Within),
+                Level = as.character(level_text),
                 EMM   = .je_fmt(em_df$emmean),
                 SE    = .je_fmt(em_df$SE),
                 df    = .je_fmt(em_df$df),
@@ -923,10 +1066,11 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
                 Upper = .je_fmt(em_df$upper.CL),
                 check.names = FALSE
             )
-            html <- paste0("<p>Estimated marginal means via <code>emmeans</code>.</p>",
+            html <- paste0("<h4>", .je_escape(.je_rm_term_label(term)),
+                           "</h4><p>Estimated marginal means via <code>emmeans</code>.</p>",
                            .je_table_html(out))
 
-            if (FALSE) {
+            if (isTRUE(options$marginalMeanComparedToZero) || length(strsplit(term, ":", fixed = TRUE)[[1]]) == 1) {
                 adj <- .je_adjust_method(options$marginalMeanCiCorrection)
                 pw  <- tryCatch(
                     as.data.frame(emmeans::contrast(emm, method = "pairwise", adjust = adj)),
@@ -945,8 +1089,11 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
                                    .je_table_html(pw_out))
                 }
             }
-            return(html)
+            chunks <- c(chunks, html)
         }
+        }
+        if (length(chunks))
+            return(paste(chunks, collapse = ""))
     }
 
     # Fallback: observed means per within-level
@@ -1046,7 +1193,9 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
 
 # ── HTML helpers specific to RM ───────────────────────────────────────────────
 
-.je_rm_design_html <- function(cells, factor_list, between, covs) {
+.je_rm_design_html <- function(cells, factor_list, between, covs,
+                               within_model_terms = character(),
+                               between_model_terms = character()) {
     factor_names <- vapply(factor_list, function(f) f$name, character(1))
     factor_detail <- paste(vapply(factor_list, function(f)
         paste0(f$name, " (", paste(f$levels, collapse = ", "), ")"),
@@ -1060,32 +1209,49 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
         "<p>Between-subject factors: ",
         .je_escape(if (length(between) == 0) "none" else paste(between, collapse = ", ")), "</p>",
         "<p>Covariates: ",
-        .je_escape(if (length(covs) == 0) "none" else paste(covs, collapse = ", ")), "</p>"
+        .je_escape(if (length(covs) == 0) "none" else paste(covs, collapse = ", ")), "</p>",
+        "<p>Within model terms: <code>",
+        .je_escape(if (length(within_model_terms) == 0) "none" else paste(within_model_terms, collapse = ", ")),
+        "</code></p>",
+        "<p>Between model terms: <code>",
+        .je_escape(if (length(between_model_terms) == 0) "none" else paste(between_model_terms, collapse = ", ")),
+        "</code></p>"
     )
 }
 
 .je_rm_order_status <- function(options) {
-    if (!isTRUE(options$orderRestricted) && !isTRUE(options$modelComparison) &&
-        !isTRUE(options$informedHypothesisTests))
+    syntax <- .je_rm_option(options, "orderRestrictedSyntax",
+                            .je_rm_option(options, "restrictedSyntax", ""))
+    has_syntax <- isTRUE(nzchar(trimws(as.character(syntax %||% ""))))
+    if (!isTRUE(.je_rm_option(options, "orderRestricted", FALSE)) &&
+        !isTRUE(.je_rm_option(options, "modelComparison", FALSE)) &&
+        !isTRUE(.je_rm_option(options, "informedHypothesisTests", FALSE)) &&
+        !has_syntax)
         return("<p>Bayesian/order-restricted hypothesis testing is disabled.</p>")
     paste0("<p><strong>Syntax captured:</strong></p><pre>",
-           .je_escape(options$orderRestrictedSyntax %||% ""),
+           .je_escape(syntax),
            "</pre>")
 }
 
 .je_rm_order_restricted_full <- function(long, rm_fit, factor_list, between, options) {
-    any_active <- isTRUE(options$orderRestricted) ||
-                  isTRUE(options$modelComparison)  ||
-                  isTRUE(options$informedHypothesisTests)
+    syntax <- .je_rm_option(options, "orderRestrictedSyntax",
+                            .je_rm_option(options, "restrictedSyntax", ""))
+    has_syntax <- isTRUE(nzchar(trimws(as.character(syntax %||% ""))))
+    any_active <- isTRUE(.je_rm_option(options, "orderRestricted", FALSE)) ||
+                  isTRUE(.je_rm_option(options, "modelComparison", FALSE))  ||
+                  isTRUE(.je_rm_option(options, "informedHypothesisTests", FALSE)) ||
+                  has_syntax
     if (!any_active)
         return("<p>Bayesian / order-restricted hypothesis testing is disabled.</p>")
 
     chunks <- character()
 
     # Order-restricted inference via bain (uses the lm() fit)
-    if ((isTRUE(options$orderRestricted) || isTRUE(options$informedHypothesisTests)) &&
+    if ((isTRUE(.je_rm_option(options, "orderRestricted", FALSE)) ||
+         isTRUE(.je_rm_option(options, "informedHypothesisTests", FALSE)) ||
+         has_syntax) &&
         !is.null(rm_fit$lm_fit)) {
-        h_raw <- trimws(as.character(options$orderRestrictedSyntax %||% ""))
+        h_raw <- trimws(as.character(syntax))
         if (nzchar(h_raw)) {
             chunks <- c(chunks, .je_bain_analysis(rm_fit$lm_fit, options))
         } else {
@@ -1097,7 +1263,7 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
     }
 
     # Bayesian repeated-measures ANOVA via BayesFactor (uses whichRandom = Subject)
-    if (isTRUE(options$modelComparison))
+    if (isTRUE(.je_rm_option(options, "modelComparison", FALSE)))
         chunks <- c(chunks, .je_bayesian_rm_anova(long, factor_list, between, options))
 
     paste(chunks, collapse = "")
@@ -1165,7 +1331,9 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
     )
 }
 
-.je_rm_repro_html <- function(cells, factor_list, between, covs) {
+.je_rm_repro_html <- function(cells, factor_list, between, covs,
+                              within_model_terms = character(),
+                              between_model_terms = character()) {
     factor_str <- paste(vapply(factor_list, function(f)
         paste0(f$name, ": ", paste(f$levels, collapse = ", ")), character(1)), collapse = "; ")
     paste0(
@@ -1173,6 +1341,12 @@ enhancedRepeatedMeasuresAnovaClass <- if (requireNamespace("jmvcore", quietly = 
         "<p>Within-subject factor(s): <code>", .je_escape(factor_str), "</code></p>",
         "<p>Between factors: <code>",
         .je_escape(if (length(between) == 0) "none" else paste(between, collapse = ", ")),
+        "</code></p>",
+        "<p>Within model terms: <code>",
+        .je_escape(if (length(within_model_terms) == 0) "none" else paste(within_model_terms, collapse = ", ")),
+        "</code></p>",
+        "<p>Between model terms: <code>",
+        .je_escape(if (length(between_model_terms) == 0) "none" else paste(between_model_terms, collapse = ", ")),
         "</code></p>"
     )
 }

@@ -1,0 +1,63 @@
+---
+name: enhancedAncova
+title: JASP Enhanced ANCOVA
+jrs: '1.1'
+items:
+    - { name: status, title: Implementation Status, type: Html }
+    - { name: modelSummary, title: Model Summary, type: Html }
+    - { name: descriptivesSection, title: Descriptive Statistics, type: Html, visible: (descriptives) }
+    - { name: effectSizesSection, title: Effect Sizes, type: Html }
+    - { name: assumptionsSection, title: Assumption Checks and Diagnostics, type: Html }
+    - { name: contrasts, title: Contrasts, type: Html }
+    - { name: orderRestrictions, title: Bayesian and Order Restricted Hypotheses, type: Html }
+    - { name: postHocSection, title: Post Hoc Tests, type: Html }
+    - { name: marginalMeansSection, title: Estimated Marginal Means, type: Html }
+    - { name: simpleEffectsSection, title: Simple Main Effects, type: Html }
+    - { name: nonparametric, title: Nonparametric Alternatives, type: Html }
+    - { name: plots, title: Plots, type: Html }
+    - name: qqPlot
+      title: Q-Q Plot of Residuals
+      type: Image
+      visible: (qqPlot)
+      width: 520
+      height: 420
+      renderFun: .qqPlot
+    - name: residualPlot
+      title: Residual Plot
+      type: Image
+      width: 520
+      height: 420
+      renderFun: .residualPlot
+    - name: raincloudPlot
+      title: Raincloud Plot
+      type: Image
+      width: 640
+      height: 440
+      renderFun: .raincloudPlot
+    - { name: savedColumns, title: Saved Dataset Columns, type: Html }
+    - name: residsOV
+      title: Residuals
+      type: Output
+      varTitle: Residuals
+      varDescription: Residuals from JASP Enhanced ANCOVA
+      measureType: continuous
+      clearWith:
+        - dependent
+        - fixedFactors
+        - covariates
+    - name: predictOV
+      title: Predicted values
+      type: Output
+      varTitle: Predicted values
+      varDescription: Predicted values from JASP Enhanced ANCOVA
+      measureType: continuous
+      clearWith:
+        - dependent
+        - fixedFactors
+        - covariates
+    - { name: apa, title: APA Reporting, type: Html }
+    - { name: teaching, title: Teaching Mode, type: Html }
+    - { name: publication, title: Publication Mode, type: Html }
+    - { name: reproducibility, title: Reproducibility, type: Html }
+    - { name: about, title: About and Citation, type: Html }
+...

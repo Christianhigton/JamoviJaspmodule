@@ -22,6 +22,8 @@ options:
     - { name: repeatedMeasuresCells,title: Repeated Measures Cells,                 type: Variables, suggested: [continuous], permitted: [numeric] }
     - { name: betweenSubjectFactors,title: Between Subject Factors,                 type: Variables, suggested: [nominal, ordinal], permitted: [factor] }
     - { name: covariates,           title: Covariates,                              type: Variables, suggested: [continuous], permitted: [numeric] }
+    - { name: withinModelTerms,     title: Within Model Terms,                      type: String, default: '' }
+    - { name: betweenModelTerms,    title: Between Model Terms,                     type: String, default: '' }
 
     # Display
     - { name: descriptives,                   title: Descriptive statistics,          type: Bool, default: false }
@@ -117,6 +119,7 @@ options:
     - { name: restrictedMarginalMeanTerms, title: Restricted marginal mean terms, type: Variables, suggested: [nominal, ordinal], permitted: [factor] }
 
     # Post Hoc Tests
+    - { name: postHocRmTerms,          title: Repeated measures post hoc terms,         type: String, default: '' }
     - { name: postHocTerms,            title: Post hoc terms,                           type: Variables, suggested: [nominal, ordinal], permitted: [factor] }
     - { name: postHocEffectSize,       title: Effect size,                              type: Bool, default: false }
     - { name: postHocConditionalTable, title: Conditional comparisons for interactions, type: Bool, default: false }
@@ -171,6 +174,7 @@ options:
     - { name: rainCloudYAxisLabel,      title: Label y-axis,       type: String, default: '' }
 
     # Marginal Means
+    - { name: marginalMeanRmTerms,          title: Repeated measures marginal means terms, type: String, default: '' }
     - { name: marginalMeanTerms,            title: Marginal means terms,          type: Variables, suggested: [nominal, ordinal], permitted: [factor] }
     - { name: marginalMeanBootstrap,        title: From bootstraps,               type: Bool,    default: false }
     - { name: marginalMeanBootstrapSamples, title: Bootstrap samples,             type: Integer, min: 100, max: 100000, default: 1000 }
