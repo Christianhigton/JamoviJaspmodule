@@ -51,6 +51,7 @@ children:
         name: modelTerms
         label: Model terms
         format: string
+        width: large
       - type: CheckBox
         name: includeIntercept
         label: Include intercept

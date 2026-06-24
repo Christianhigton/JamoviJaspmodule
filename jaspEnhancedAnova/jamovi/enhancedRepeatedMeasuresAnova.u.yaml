@@ -16,18 +16,21 @@ children:
         children:
           - type: VariablesListBox
             name: repeatedMeasuresCells
+            height: large
             isTarget: true
       - type: TargetLayoutBox
         label: Between Subject Factors
         children:
           - type: VariablesListBox
             name: betweenSubjectFactors
+            height: normal
             isTarget: true
       - type: TargetLayoutBox
         label: Covariates
         children:
           - type: VariablesListBox
             name: covariates
+            height: normal
             isTarget: true
   - type: CollapseBox
     label: Repeated Measures Factors
@@ -39,14 +42,17 @@ children:
         name: rmFactorNames
         format: string
         label: Factor name
+        width: large
       - type: TextBox
         name: rmFactorLevels
         format: string
         label: Factor levels (comma-separated)
+        width: large
       - type: TextBox
         name: rmFactorSpec
         format: string
         label: Multi-factor spec (e.g., A:L1,L2;B:L1,L2,L3)
+        width: large
   - type: CollapseBox
     label: Display
     collapsed: false
@@ -98,12 +104,14 @@ children:
         name: withinModelTerms
         format: string
         label: Model Terms
+        width: large
       - type: Label
         label: Between Subjects Components
       - type: TextBox
         name: betweenModelTerms
         format: string
         label: Model terms
+        width: large
       - type: ComboBox
         name: sumOfSquares
         label: Sum of squares
@@ -174,6 +182,7 @@ children:
         name: restrictedSyntax
         label: Syntax (e.g., groupA > groupB > groupC)
         format: string
+        width: large
       - type: LayoutBox
         margin: large
         children:
@@ -247,6 +256,7 @@ children:
         name: postHocRmTerms
         format: string
         label: Repeated Measures Terms
+        width: large
       - type: VariableSupplier
         suggested:
           - nominal
@@ -363,6 +373,7 @@ children:
         name: descriptivePlotYAxisLabel
         format: string
         label: Label y-axis
+        width: large
       - type: CheckBox
         name: descriptivePlotErrorBarPooled
         label: Average across unused RM factors
@@ -414,6 +425,7 @@ children:
         name: labelYAxisTwo
         format: string
         label: Label y-axis
+        width: large
       - type: CheckBox
         name: usePooledStandErrorCITwo
         label: Average across unused RM factors
@@ -468,6 +480,7 @@ children:
         name: rainCloudYAxisLabel
         format: string
         label: Label y-axis
+        width: large
   - type: CollapseBox
     label: Marginal Means
     collapsed: true
@@ -476,6 +489,7 @@ children:
         name: marginalMeanRmTerms
         format: string
         label: Repeated Measures Terms
+        width: large
       - type: VariableSupplier
         suggested:
           - nominal

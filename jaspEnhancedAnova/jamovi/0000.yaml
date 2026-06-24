@@ -41,9 +41,11 @@ analyses:
     menuGroup: JASP Enhanced ANOVA
     menuTitle: ANCOVA
     description: >
-      Classical ANCOVA matching the JASP ANCOVA analysis, including covariates,
-      Type III SS, assumptions, post hoc tests, plots, marginal means, simple
-      effects, order-restricted hypotheses, and export.
+      Classical ANCOVA matching the JASP ANCOVA analysis, including fixed
+      factors, random factors, covariates, WLS weights, model terms, Type III
+      SS, assumptions, contrasts, post hoc tests, plots, marginal means, simple
+      effects, nonparametric alternatives, order-restricted hypotheses, and
+      export.
   - title: JASP Enhanced MANCOVA
     name: enhancedManova
     ns: jaspEnhancedAnova
@@ -51,9 +53,10 @@ analyses:
     menuGroup: JASP Enhanced ANOVA
     menuTitle: MANCOVA
     description: >
-      Multivariate ANCOVA matching the JASP MANOVA workflow with covariate
-      support, including Pillai, Wilks, Hotelling-Lawley, Roy, univariate
-      follow-up tables, and assumption checks.
+      True MANCOVA matching the JASP MANOVA workflow with covariate support,
+      including multivariate omnibus tests, univariate follow-up ANCOVA tables,
+      assumption checks, effect-size-oriented reporting, and reproducibility
+      output.
 usesNative: true
 minApp: 1.0.8
 

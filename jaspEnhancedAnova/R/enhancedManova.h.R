@@ -244,7 +244,11 @@ enhancedManovaBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class
 
 #' JASP Enhanced MANCOVA
 #'
-#' True MANCOVA matching the JASP MANOVA workflow with covariate support.
+#' True MANCOVA matching the JASP MANOVA workflow with covariate support,
+#' including multivariate omnibus tests, univariate follow-up ANCOVA tables,
+#' assumption checks, effect-size-oriented reporting, and reproducibility
+#' output.
+#'
 #' @param data .
 #' @param dependent .
 #' @param fixedFactors .

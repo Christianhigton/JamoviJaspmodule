@@ -1119,8 +1119,9 @@ enhancedAncovaBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class
 
 #' JASP Enhanced ANCOVA
 #'
-#' Classical ANCOVA matching the JASP ANCOVA analysis, including Type III SS,
-#' corrections, contrasts, post hoc tests, plots, marginal means, simple
+#' Classical ANCOVA matching the JASP ANCOVA analysis, including fixed
+#' factors, random factors, covariates, WLS weights, model terms, Type III SS,
+#' assumptions, contrasts, post hoc tests, plots, marginal means, simple
 #' effects, nonparametric alternatives, order-restricted hypotheses, and
 #' export.
 #'

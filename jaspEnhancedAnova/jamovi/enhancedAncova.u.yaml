@@ -96,6 +96,7 @@ children:
         name: modelTerms
         label: Model terms
         format: string
+        width: large
   - type: CollapseBox
     label: Assumption Checks
     collapsed: true
